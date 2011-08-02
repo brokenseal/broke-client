@@ -10,7 +10,7 @@
  * 
  */
 
-(function(__global__){
+;(function(__global__){
     // private attributes/methods
     var
         requestEventName= 'broke.request'
