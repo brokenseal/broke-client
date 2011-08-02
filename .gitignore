@@ -1,0 +1,13 @@
+*.project
+*.pydevproject
+.komodotools
+*.komodoproject
+*~
+*.db
+*.kpf
+.DS_Store
+*.sqlite3
+.hg
+.hgignore
+*.log
+*.log.*
