@@ -11,3 +11,4 @@
 .hgignore
 *.log
 *.log.*
+*.idea*
