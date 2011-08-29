@@ -10,13 +10,14 @@
  * 
  */
 
-;(function(__global__){
+;(function(__global__, undefined){
     // private attributes/methods
     var
         requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
     ;
-        __global__.broke= {};
+    
+    __global__.broke= {};
     
     broke.$window= $(window);
     
@@ -574,6 +575,7 @@
         ,locale: {}
         ,urlPatterns: []
         ,contrib: {}
+        ,fs: {}
         ,views: {}
         ,template: {}
         ,templates: {}
@@ -619,7 +621,7 @@
             ,get: function(pk, tableName){
                 // TODO: improve
                 broke.schema.index[tableName]= broke.schema.index[tableName] || {};
-                
+
                 return broke.schema.index[tableName][pk];
             }
             ,set: function(tableName, kwargs) {
