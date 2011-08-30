@@ -57,6 +57,11 @@ broke.extend(broke.conf.settings, {
     // choices are: elements, hashchange
     ,EVENT_TRIGGERING_METHOD: 'elements'
 
+    ,FILE_SYSTEM: {
+        SIZE: 5 * 1024 // 5 Kb default file system size
+        ,PERSISTENT: true
+    }
+
     ,FORM: null                        // default operation form
 
     ,GET_LATEST_BY: 'pk'            // defines what field models' manager method

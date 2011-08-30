@@ -9,6 +9,7 @@
  * Licensed under MIT.
  * 
  */
+var broke= {};
 
 ;(function(__global__, undefined){
     // private attributes/methods
@@ -16,8 +17,6 @@
         requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
     ;
-    
-    __global__.broke= {};
     
     broke.$window= $(window);
     
