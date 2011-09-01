@@ -225,6 +225,7 @@
             this._binaryMode= binaryModeEnabled;
 
             getFileSystem(function(fs){
+                
                 fs.root.getFile(path, {
                         create: writeModeEnabled
                     }, function(fileEntry){
@@ -234,9 +235,14 @@
                             fileEntry.file(function(file){
                                 instance._file= file;
 
-                                if(!writeModeEnabled) {
-                                    callback(null, instance);
+                                // if write mode is enabled but no writer has been set yet, do not fire the callback
+                                // and eventually wait for the fileEntry's createWriter method callback to be fired
+                                if(writeModeEnabled && !instance._writer) {
+                                    return;
                                 }
+
+                                instance.closed= false;
+                                callback(null, instance);
                             }, function(error){
                                 callback(error, null);
                             });
@@ -246,6 +252,13 @@
                             instance._fileEntry.createWriter(function(fileWriter){
                                 instance._writer= fileWriter;
 
+                                // if read mode is enabled but no reader has been set yet, do not fire the callback
+                                // and eventually wait for the fileEntry's file method callback to be fired
+                                if(readModeEnabled && !instance._reader) {
+                                    return;
+                                }
+
+                                instance.closed= false;
                                 callback(null, instance);
                             }, function(error){
                                 callback(error, null);
@@ -256,11 +269,12 @@
                     });
             });
         }
+        ,closed: true
         ,close: function(){
-            // do stuff
             this._file= null;
             this._writer= null;
-
+            this.closed= true;
+            
             return this;
         }
         ,read: function(length, position, callback){
@@ -270,18 +284,22 @@
                 ,blob= this._file.slice(pos, length)
             ;
 
-            reader.onloadend = function(e) {
+            reader.onloadend = function(event) {
                 // The callback is given the three arguments, (err, bytesRead, buffer).
-                if(this.result !== null){
-                    this._offset= pos + e.loaded;
+                if(event.target.result !== null){
+                    instance._offset= pos + e.loaded;
 
-                    callback(null, e.loaded, this.result);
+                    callback(null, e.loaded, event.target.result);
                 } else{
                     // TO DO -- An error object should be passed as the first parameter
                     callback(e, 0, null);
                 }
             };
 
+            reader.onerror(function(error){
+                callback(error, null);
+            });
+            
             if(this._binaryMode){
                 // TO DO -- readAsBinaryString, readAsArrayBuffer or readAsDataURL ?
                 reader.readAsBinaryString(file);
@@ -291,44 +309,44 @@
         }
         ,write: function(buffer, position, callback){
             var
-                builder= __global__.BlobBuilder || __global__.WebKitBlobBuilder
-                ,bb= new builder()
+                instance= this
+                ,builderClass= __global__.BlobBuilder || __global__.WebKitBlobBuilder
+                ,builderInstance= new builderClass()
                 ,pos= (position === null) ? this._offset : position
             ;
-
-            this._writer.onwriteend = function(e) {
-                this._offset= pos + e.loaded;
+            
+            this._writer.onwriteend = function(event) {
+                instance._offset= pos + event.loaded;
 
                 // The callback will be given three arguments (err, written, buffer)
                 // where written specifies how many bytes were written into buffer.
-                callback(null, e.loaded, buffer);
+                callback(null, event.loaded, buffer);
             };
-
-            this._writer.onerror = function(e) {
-                this._offset= pos + e.loaded;
-
-                // TO DO -- An error object should be passed as the first parameter
-                callback(e, e.loaded, buffer);
-            };
-
-            bb.append(buffer);
+            
+            this._writer.onerror(function(error){
+                callback(error, null);
+            });
+            
+            builderInstance.append(buffer);
 
             this._writer.seek(pos);
-
+            
             if(this._binaryMode){
                 // TO DO -- MIME Content-Type ?
-                this._writer.write(bb.getBlob());
+                this._writer.write(builderInstance.getBlob());
             } else{
-                this._writer.write(bb.getBlob('text/plain'));
+                this._writer.write(builderInstance.getBlob('text/plain'));
             }
         }
-        ,truncate: function(len, callback){
+        ,truncate: function(len){
             this._writer.truncate(len);
-
-            callback(null);
+            
+            return this;
         }
         ,seek: function(offset){
             this._offset= offset;
+
+            return this;
         }
         ,readLine: function(size){}
         ,readLines: function(size){}
@@ -341,4 +359,3 @@
         }
     });
 })(this);
-
