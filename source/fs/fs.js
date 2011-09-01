@@ -3,6 +3,8 @@
  * API copied from NodeJS file system api at http://nodejs.org/docs/latest/api/fs.html which exposes standard POSIX functions
  */
 
+// vim: set ts=4 sw=4 et:
+
 (function(__global__, undefined){
     var
         requestFileSystem= __global__.requestFileSystem || __global__.webkitRequestFileSystem
@@ -17,11 +19,11 @@
             var
                 type= settings.FILE_SYSTEM.PERSISTENT ? __global__.PERSISTENT : __global__.TEMPORARY
             ;
-            
+
             if(requestFileSystem === undefined) {
                 throw new Error("This browser does not support the HTML5 file system API.");
             }
-            
+
             requestFileSystem(type, settings.FILE_SYSTEM.SIZE, function(fs){
 
                 callback(null, fs);
@@ -29,7 +31,7 @@
             }, function(error){
                 throw error;
             });
-            
+
         }
         /**
          * Splits directory from file from the path given
@@ -40,7 +42,7 @@
                 ,dirPath= tmpSplitPath.slice(0, -1).join('/')
                 ,fileName= tmpSplitPath.slice(-1)[0]
             ;
-            
+
             return [ dirPath, fileName ];
         }
         ,fireCallbacks= function(callbacks){
@@ -51,7 +53,7 @@
                 }
                 ,args= Array.prototype.slice.call(arguments, 1)
             ;
-            
+
             len= callbacks.length;
             while(len--) {
                 // fire the callback function as soon as possible, without blocking the UI
@@ -59,7 +61,7 @@
             }
         }
     ;
-    
+
     broke.fs= {
         KB: KB
         ,MB: MB
@@ -67,46 +69,16 @@
         ,TB: TB
 
         ,open: function(path, flags, callback){
-            /**
-             * Available modes so far are read (r) and write (w) and read/write (rw)
-             * Wanna help? Fork and make a pull request :)
-             */
-            var
-                tmpSplitPath= splitPath(path)
-                ,dirPath= tmpSplitPath[0]
-                ,fileName= tmpSplitPath[1]
-                ,readModeEnabled= (/\r/i).test(mode)
-                ,writeModeEnabled= (/\w/i).test(mode)
-            ;
-            
-            getFileSystem(function(fs){
-                fs.root.getDirectory(dirPath, {
-                    create: false
-                }, function(dir){
-                    dir.getFile(fileName, {
-                        create: writeMode
-                    }, function(fileEntry){
-                        
-                        broke.fs.File(fileEntry, readModeEnabled, writeModeEnabled, function(fileInstance){
-                            callback(null, fileInstance);
-                        });
-
-                    }, function(){
-                        callback(error, null);
-                    });
-                }, function(error){
-                    callback(error, null);
-                });
-            });
+            broke.fs.File(path, flags, callback);
         }
         //,openSync: function(path, flags, mode){}
-        
+
         ,unlink: function(path, callback){
             open(path, function(error, fileObject){
                 if(error) {
                     return callback(error);
                 }
-                
+
                 fileObject._fileEntry.remove(function(){
                     callback();
                 }, function(error){
@@ -115,7 +87,7 @@
             });
         }
         //,unlinkSync: function(path){}
-        
+
         ,rename: function(fromPath, toPath, callback){
             var
                 tmpFromPath= splitPath(fromPath)
@@ -125,11 +97,11 @@
                 ,toDirectoryPath= tmpToPath[0]
                 ,toFileName= tmpToPath[1]
             ;
-            
+
             getFileSystem(function(fs){
                 fs.root.getDirectory(fromDirectoryPath, {}, function(directoryEntry){
                     directoryEntry.getFile(fromFileName, {}, function(fileEntry){
-                        if(fromFileName != toFileName && fromDirectoryPath == toDirectoryPath) {
+                        if(fromFileName !== toFileName && fromDirectoryPath === toDirectoryPath) {
                             // simple renaming
                             fileEntry.moveTo(fromDirectoryPath, toFileName);
                         } else if(fromFileName != toFileName && fromDirectoryPath != toDirectoryPath){
@@ -139,7 +111,7 @@
                             // simple move
                             fileEntry.moveTo(toDirectoryPath);
                         }
-                        
+
                         callback();
                     }, function(error){
                         callback(error);
@@ -150,7 +122,7 @@
             });
         }
         //,renameSync: function(fromPath, toPath){}
-        
+
         ,rmdir: function(path, callback){
             getFileSystem(function(fs){
                 fs.root.getDirectory(function(directoryEntry){
@@ -159,13 +131,13 @@
             });
         }
         //,rmdirSync: function(path, callback){}
-        
+
         ,mkdir: function(path, callback){
             var
                 folders= path.split('/')
                 ,startDirectory
                 ,createDir= function(directoryEntry, directoryName){
-                    
+
                     // if a directory name has been passed, then create it inside the current directory
                     if(directoryName) {
                         directoryEntry.getDirectory(directoryName, { create: true }, function(newDirectoryEntry){
@@ -180,7 +152,7 @@
                     }
                 }
             ;
-            
+
             getFileSystem(function(fs){
                 createDir(fs.root, folders.shift());
             });
@@ -205,7 +177,7 @@
                             });
                         }
                     ;
-                    
+
                     readEntries();
                 }, function(error){
                     callback(error, null);
@@ -213,7 +185,7 @@
             });
         }
         //,readdirSync: function(path, callback){}
-        
+
         //,close: function(fd, callback){}
         //,closeSync: function(fd){}
         //,write: function(fd, buffer, offset, length, position, callback){}
@@ -226,63 +198,142 @@
         //,readFileSync: function(filename, encoding){}
         //,writeFile: function(filename, data, encoding, callback){}
         //,writeFileSync: function(filename, data, encoding){}
-        
+
         // declared classes
         ,Directory: null
         ,File: null
         ,Stats: null
     };
-    
+
     Class.extend({
         __name__: "broke.fs.File"
-        ,__init__: function(fileEntry, callback){
+        ,__init__: function(path, flags, callback){
+            /**
+             * Available modes so far are read (r) and write (w) and read/write (rw)
+             * Wanna help? Fork and make a pull request :)
+             */
             var
                 instance= this
+                ,readModeEnabled= (/r/i).test(flags)
+                ,writeModeEnabled= (/w/i).test(flags)
+                ,binaryModeEnabled= (/b/i).test(flags)
             ;
 
-            this._fileEntry= fileEntry;
+            this._offset= 0;
+            this._file= null;
+            this._writer= null;
+            this._binaryMode= binaryModeEnabled;
 
-            if(readModeEnabled) {
-                this._fileEntry.file(function(file){
-                    var
-                        reader= new FileReader()
-                    ;
+            getFileSystem(function(fs){
+                fs.root.getFile(path, {
+                        create: writeModeEnabled
+                    }, function(fileEntry){
+                        instance._fileEntry= fileEntry;
 
-                    reader.onloadend= function(e){
-                        instance._reader= reader;
+                        if(readModeEnabled) {
+                            fileEntry.file(function(file){
+                                instance._file= file;
 
-                        if(writeModeEnabled && instance._writer) {
-                            callback(instance);
+                                if(!writeModeEnabled) {
+                                    callback(null, instance);
+                                }
+                            }, function(error){
+                                callback(error, null);
+                            });
                         }
-                    };
 
-                    reader.readAsText(file);
+                        if(writeModeEnabled) {
+                            instance._fileEntry.createWriter(function(fileWriter){
+                                instance._writer= fileWriter;
 
-                }, function(error){
-                    callback(error);
-                });
-            }
-            
-            if(writeModeEnabled) {
-                this._fileEntry.createWriter(function(fileWriter){
-                    instance._writer= fileWriter;
-                });
-            }
+                                callback(null, instance);
+                            }, function(error){
+                                callback(error, null);
+                            });
+                        }
+                    }, function(error){
+                        callback(error, null);
+                    });
+            });
         }
-        ,_reader: null
-        ,_writer: null
-        ,closed: false
         ,close: function(){
-            this.closed= true;
             // do stuff
+            this._file= null;
+            this._writer= null;
+
             return this;
         }
-        ,read: function(size, callback){}
+        ,read: function(length, position, callback){
+            var
+                reader= new FileReader()
+                ,pos= (position === null) ? this._offset : position
+                ,blob= this._file.slice(pos, length)
+            ;
+
+            reader.onloadend = function(e) {
+                // The callback is given the three arguments, (err, bytesRead, buffer).
+                if(this.result !== null){
+                    this._offset= pos + e.loaded;
+
+                    callback(null, e.loaded, this.result);
+                } else{
+                    // TO DO -- An error object should be passed as the first parameter
+                    callback(e, 0, null);
+                }
+            };
+
+            if(this._binaryMode){
+                // TO DO -- readAsBinaryString, readAsArrayBuffer or readAsDataURL ?
+                reader.readAsBinaryString(file);
+            } else{
+                reader.readAsText(file);
+            }
+        }
+        ,write: function(buffer, position, callback){
+            var
+                builder= __global__.BlobBuilder || __global__.WebKitBlobBuilder
+                ,bb= new builder()
+                ,pos= (position === null) ? this._offset : position
+            ;
+
+            this._writer.onwriteend = function(e) {
+                this._offset= pos + e.loaded;
+
+                // The callback will be given three arguments (err, written, buffer)
+                // where written specifies how many bytes were written into buffer.
+                callback(null, e.loaded, buffer);
+            };
+
+            this._writer.onerror = function(e) {
+                this._offset= pos + e.loaded;
+
+                // TO DO -- An error object should be passed as the first parameter
+                callback(e, e.loaded, buffer);
+            };
+
+            bb.append(buffer);
+
+            this._writer.seek(pos);
+
+            if(this._binaryMode){
+                // TO DO -- MIME Content-Type ?
+                this._writer.write(bb.getBlob());
+            } else{
+                this._writer.write(bb.getBlob('text/plain'));
+            }
+        }
+        ,truncate: function(len, callback){
+            this._writer.truncate(len);
+
+            callback(null);
+        }
+        ,seek: function(offset){
+            this._offset= offset;
+        }
         ,readLine: function(size){}
         ,readLines: function(size){}
-        ,seek: function(offset){}
     });
-    
+
     Class.extend({
         __name__: "broke.fs.Directory"
         ,__init__: function(directoryEntry){
@@ -290,3 +341,4 @@
         }
     });
 })(this);
+
