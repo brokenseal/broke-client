@@ -3,8 +3,6 @@
  * API copied from NodeJS file system api at http://nodejs.org/docs/latest/api/fs.html which exposes standard POSIX functions
  */
 
-// vim: set ts=4 sw=4 et:
-
 (function(__global__, undefined){
     var
         requestFileSystem= __global__.requestFileSystem || __global__.webkitRequestFileSystem
@@ -211,216 +209,216 @@
 
     Class.extend({
         __name__: "broke.fs.File"
-		,__init__: function(path, flags, callback){
-			var
-				instance= this
-				,mode= flags.charAt(0)
-				,readModeEnabled
-				,writeModeEnabled
-				,seekToEnd
-				,truncateFile
-				,createFile
-				,binaryModeEnabled= (/b/).test(flags)
-			;
+        ,__init__: function(path, flags, callback){
+            var
+                instance= this
+                ,mode= flags.charAt(0)
+                ,readModeEnabled
+                ,writeModeEnabled
+                ,seekToEnd
+                ,truncateFile
+                ,createFile
+                ,binaryModeEnabled= (/b/).test(flags)
+            ;
 
-			if(mode === 'r'){
-				readModeEnabled= true;
-				writeModeEnabled= (/[+]/).test(flags);
-				seekToEnd= false;
-				truncateFile= false;
-				createFile= false;
-			} else if(mode === 'w'){
-				readModeEnabled= (/[+]/).test(flags);
-				writeModeEnabled= true;
-				seekToEnd= false;
-				truncateFile= true;
-				createFile= true;
-			} else if(mode === 'a'){
-				readModeEnabled= (/[+]/).test(flags);
-				writeModeEnabled= true;
-				seekToEnd= true;
-				truncateFile= false;
-				createFile= true;
-			} else{
-				readModeEnabled= false;
-				writeModeEnabled= false;
-				seekToEnd= false;
-				truncateFile= false;
-				createFile= false;
-				if(callback){
-					// TO DO -- An error object should be passed as the first parameter
-					callback(true, null);
-					return;
-				}
-			}
+            if(mode === 'r'){
+                readModeEnabled= true;
+                writeModeEnabled= (/[+]/).test(flags);
+                seekToEnd= false;
+                truncateFile= false;
+                createFile= false;
+            } else if(mode === 'w'){
+                readModeEnabled= (/[+]/).test(flags);
+                writeModeEnabled= true;
+                seekToEnd= false;
+                truncateFile= true;
+                createFile= true;
+            } else if(mode === 'a'){
+                readModeEnabled= (/[+]/).test(flags);
+                writeModeEnabled= true;
+                seekToEnd= true;
+                truncateFile= false;
+                createFile= true;
+            } else{
+                readModeEnabled= false;
+                writeModeEnabled= false;
+                seekToEnd= false;
+                truncateFile= false;
+                createFile= false;
+                if(callback){
+                    // TO DO -- An error object should be passed as the first parameter
+                    callback(true, null);
+                    return;
+                }
+            }
 
-			this._offset= 0;
-			this._file= null;
-			this._writer= null;
-			this._binaryMode= binaryModeEnabled;
+            this._offset= 0;
+            this._file= null;
+            this._writer= null;
+            this._binaryMode= binaryModeEnabled;
 
-			getFileSystem(function(fs){
-				fs.root.getFile(path, {
-						create: createFile
-					}, function(fileEntry){
-						instance._fileEntry= fileEntry;
+            getFileSystem(function(fs){
+                fs.root.getFile(path, {
+                        create: createFile
+                    }, function(fileEntry){
+                        instance._fileEntry= fileEntry;
 
-						if(readModeEnabled) {
-							fileEntry.file(function(file){
-								instance._file= file;
-								instance._slice= file.slice || file.webkitSlice;
+                        if(readModeEnabled) {
+                            fileEntry.file(function(file){
+                                instance._file= file;
+                                instance._slice= file.slice || file.webkitSlice;
 
-								if((!writeModeEnabled) || (writeModeEnabled && instance._writer)){
-									if(callback){
-										callback(null, instance);
-									}
-								}
-							}, function(error){
-								if(callback){
-									callback(error, null);
-								}
-							});
-						}
+                                if((!writeModeEnabled) || (writeModeEnabled && instance._writer)){
+                                    if(callback){
+                                        callback(null, instance);
+                                    }
+                                }
+                            }, function(error){
+                                if(callback){
+                                    callback(error, null);
+                                }
+                            });
+                        }
 
-						if(writeModeEnabled) {
-							instance._fileEntry.createWriter(function(fileWriter){
-								instance._writer= fileWriter;
+                        if(writeModeEnabled) {
+                            instance._fileEntry.createWriter(function(fileWriter){
+                                instance._writer= fileWriter;
 
-								if(truncateFile){
-									instance.truncate()
-								}
+                                if(truncateFile){
+                                    instance.truncate()
+                                }
 
-								if(seekToEnd){
-									instance.seek(0, SEEK_END);
-								}
+                                if(seekToEnd){
+                                    instance.seek(0, SEEK_END);
+                                }
 
-								if((!readModeEnabled) || (readModeEnabled && instance._file)){
-									if(callback){
-										callback(null, instance);
-									}
-								}
-							}, function(error){
-								if(callback){
-									callback(error, null);
-								}
-							});
-						}
-					}, function(error){
-						if(callback){
-							callback(error, null);
-						}
-					});
-			});
-		}
-		,read: function(length, position, callback){
-			var
-				instance= this
-				,reader= new FileReader()
-				,pos= ((position === undefined) || (position === null)) ? this._offset : position
-				,blob= this._slice.call(this._file, pos, length)
-			;
+                                if((!readModeEnabled) || (readModeEnabled && instance._file)){
+                                    if(callback){
+                                        callback(null, instance);
+                                    }
+                                }
+                            }, function(error){
+                                if(callback){
+                                    callback(error, null);
+                                }
+                            });
+                        }
+                    }, function(error){
+                        if(callback){
+                            callback(error, null);
+                        }
+                    });
+            });
+        }
+        ,read: function(length, position, callback){
+            var
+                instance= this
+                ,reader= new FileReader()
+                ,pos= ((position === undefined) || (position === null)) ? this._offset : position
+                ,blob= this._slice.call(this._file, pos, length)
+            ;
 
-			reader.onload= function(event){
-				// The callback is given the three arguments, (err, bytesRead, buffer).
-				instance._offset= pos + event.loaded;
+            reader.onload= function(event){
+                // The callback is given the three arguments, (err, bytesRead, buffer).
+                instance._offset= pos + event.loaded;
 
-				if(callback){
-					callback(null, event.loaded, event.target.result);
-				}
-			};
+                if(callback){
+                    callback(null, event.loaded, event.target.result);
+                }
+            };
 
-			reader.onerror= function(error){
-				// TO DO -- An error object should be passed as the first parameter
-				if(callback){
-					callback(error, 0, null);
-				}
-			};
+            reader.onerror= function(error){
+                // TO DO -- An error object should be passed as the first parameter
+                if(callback){
+                    callback(error, 0, null);
+                }
+            };
 
-			reader.onabort= reader.onerror;
+            reader.onabort= reader.onerror;
 
-			if(this._binaryMode){
-				// TO DO -- readAsBinaryString, readAsArrayBuffer or readAsDataURL ?
-				reader.readAsBinaryString(blob);
-			} else{
-				reader.readAsText(blob);
-			}
-		}
-		,write: function(buffer, position, callback){
-			var
-				instance= this
-				,builderClass= __global__.BlobBuilder || __global__.WebKitBlobBuilder
-				,builderInstance= new builderClass()
-				,pos= ((position === undefined) || (position === null)) ? this._offset : position
-			;
+            if(this._binaryMode){
+                // TO DO -- readAsBinaryString, readAsArrayBuffer or readAsDataURL ?
+                reader.readAsBinaryString(blob);
+            } else{
+                reader.readAsText(blob);
+            }
+        }
+        ,write: function(buffer, position, callback){
+            var
+                instance= this
+                ,builderClass= __global__.BlobBuilder || __global__.WebKitBlobBuilder
+                ,builderInstance= new builderClass()
+                ,pos= ((position === undefined) || (position === null)) ? this._offset : position
+            ;
 
-			this._writer.onwrite= function(event){
-				instance._offset= pos + event.loaded;
+            this._writer.onwrite= function(event){
+                instance._offset= pos + event.loaded;
 
-				// The callback will be given three arguments (err, written, buffer)
-				// where written specifies how many bytes were written into buffer.
-				if(callback){
-					callback(null, event.loaded, buffer);
-				}
-			};
+                // The callback will be given three arguments (err, written, buffer)
+                // where written specifies how many bytes were written into buffer.
+                if(callback){
+                    callback(null, event.loaded, buffer);
+                }
+            };
 
-			this._writer.onerror= function(error){
-				// The operation may fail after writing some bytes.
-				// The offset in the file has to be updated according to the bytes written before the error
-				instance._offset= pos + error.loaded;
+            this._writer.onerror= function(error){
+                // The operation may fail after writing some bytes.
+                // The offset in the file has to be updated according to the bytes written before the error
+                instance._offset= pos + error.loaded;
 
-				// TO DO -- An error object should be passed as the first parameter
-				if(callback){
-					callback(error, error.loaded, buffer);
-				}
-			};
+                // TO DO -- An error object should be passed as the first parameter
+                if(callback){
+                    callback(error, error.loaded, buffer);
+                }
+            };
 
-			this._writer.onabort= this._writer.onerror;
+            this._writer.onabort= this._writer.onerror;
 
-			builderInstance.append(buffer);
+            builderInstance.append(buffer);
 
-			this._writer.seek(pos);
+            this._writer.seek(pos);
 
-			if(this._binaryMode){
-				// TO DO -- MIME Content-Type ?
-				this._writer.write(builderInstance.getBlob());
-			} else{
-				this._writer.write(builderInstance.getBlob('text/plain'));
-			}
-		}
-		,truncate: function(len){
-			var
-				length= ((len !== undefined) && (len !== null)) ? len : 0
-			;
+            if(this._binaryMode){
+                // TO DO -- MIME Content-Type ?
+                this._writer.write(builderInstance.getBlob());
+            } else{
+                this._writer.write(builderInstance.getBlob('text/plain'));
+            }
+        }
+        ,truncate: function(len){
+            var
+                length= ((len !== undefined) && (len !== null)) ? len : 0
+            ;
 
-			if(this.tell() > length){
-				this.seek(length);
-			}
+            if(this.tell() > length){
+                this.seek(length);
+            }
 
-			this._writer.truncate(len);
-		}
-		,tell: function(){
-			return this._offset;
-		}
-		,seek: function(offset, whence){
-			if(whence === SEEK_CUR){
-				// Relative to current position
-				this._offset+= offset;
-			} else if(whence === SEEK_END){
-				// Relative to file end
-				if(this._writer){
-					this._offset= this._writer.length + offset;
-					this._writer.seek(this._offset);
-				} else if(this._file){
-					this._offset= this._file.size + offset;
-				}
-			} else{
-				// Absolute indexing
-				this._offset= offset;
-			}
-		}
-		,rewind: function(){
-			this._offset= 0;
-		}
+            this._writer.truncate(len);
+        }
+        ,tell: function(){
+            return this._offset;
+        }
+        ,seek: function(offset, whence){
+            if(whence === SEEK_CUR){
+                // Relative to current position
+                this._offset+= offset;
+            } else if(whence === SEEK_END){
+                // Relative to file end
+                if(this._writer){
+                    this._offset= this._writer.length + offset;
+                    this._writer.seek(this._offset);
+                } else if(this._file){
+                    this._offset= this._file.size + offset;
+                }
+            } else{
+                // Absolute indexing
+                this._offset= offset;
+            }
+        }
+        ,rewind: function(){
+            this._offset= 0;
+        }
         ,readLine: function(size){}
         ,readLines: function(size){}
     });
@@ -432,4 +430,6 @@
         }
     });
 })(this);
+
+// vim: set ts=4 sw=4 et:
 
