@@ -394,7 +394,7 @@
                 this._writer.seek(length);
             }
 
-            this._writer.truncate(len);
+            this._writer.truncate(length);
         }
         ,tell: function(){
             return this._offset;
