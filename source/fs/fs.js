@@ -3,8 +3,6 @@
  * API copied from NodeJS file system api at http://nodejs.org/docs/latest/api/fs.html which exposes standard POSIX functions
  */
 
-// vim: set ts=4 sw=4 et:
-
 (function(__global__, undefined){
     var
         requestFileSystem= __global__.requestFileSystem || __global__.webkitRequestFileSystem
@@ -13,6 +11,10 @@
         ,MB= KB * KB
         ,GB= MB * KB
         ,TB= GB * KB
+        // File.seek whence constants
+        ,SEEK_SET= 0
+        ,SEEK_CUR= 1
+        ,SEEK_END= 2
 
         // utility functions
         ,getFileSystem= function(callback){
@@ -26,7 +28,7 @@
 
             requestFileSystem(type, settings.FILE_SYSTEM.SIZE, function(fs){
 
-                callback(null, fs);
+                callback(fs);
 
             }, function(error){
                 throw error;
@@ -74,16 +76,16 @@
         //,openSync: function(path, flags, mode){}
 
         ,unlink: function(path, callback){
-            open(path, function(error, fileObject){
-                if(error) {
-                    return callback(error);
-                }
-
-                fileObject._fileEntry.remove(function(){
+            fs.root.getFile(path, {
+                create: false
+            }, function(fileEntry){
+                fileEntry.remove(function(){
                     callback();
                 }, function(error){
                     callback(error);
                 });
+            }, function(error){
+                callback(error);
             });
         }
         //,unlinkSync: function(path){}
@@ -208,16 +210,47 @@
     Class.extend({
         __name__: "broke.fs.File"
         ,__init__: function(path, flags, callback){
-            /**
-             * Available modes so far are read (r) and write (w) and read/write (rw)
-             * Wanna help? Fork and make a pull request :)
-             */
             var
                 instance= this
-                ,readModeEnabled= (/r/i).test(flags)
-                ,writeModeEnabled= (/w/i).test(flags)
-                ,binaryModeEnabled= (/b/i).test(flags)
+                ,mode= flags.charAt(0)
+                ,readModeEnabled
+                ,writeModeEnabled
+                ,seekToEnd
+                ,truncateFile
+                ,createFile
+                ,binaryModeEnabled= (/b/).test(flags)
             ;
+
+            if(mode === 'r'){
+                readModeEnabled= true;
+                writeModeEnabled= (/[+]/).test(flags);
+                seekToEnd= false;
+                truncateFile= false;
+                createFile= false;
+            } else if(mode === 'w'){
+                readModeEnabled= (/[+]/).test(flags);
+                writeModeEnabled= true;
+                seekToEnd= false;
+                truncateFile= true;
+                createFile= true;
+            } else if(mode === 'a'){
+                readModeEnabled= (/[+]/).test(flags);
+                writeModeEnabled= true;
+                seekToEnd= true;
+                truncateFile= false;
+                createFile= true;
+            } else{
+                readModeEnabled= false;
+                writeModeEnabled= false;
+                seekToEnd= false;
+                truncateFile= false;
+                createFile= false;
+                if(callback){
+                    // TO DO -- An error object should be passed as the first parameter
+                    callback(true, null);
+                    return;
+                }
+            }
 
             this._offset= 0;
             this._file= null;
@@ -226,19 +259,24 @@
 
             getFileSystem(function(fs){
                 fs.root.getFile(path, {
-                        create: writeModeEnabled
+                        create: createFile
                     }, function(fileEntry){
                         instance._fileEntry= fileEntry;
 
                         if(readModeEnabled) {
                             fileEntry.file(function(file){
                                 instance._file= file;
+                                instance._slice= file.slice || file.webkitSlice;
 
-                                if(!writeModeEnabled) {
-                                    callback(null, instance);
+                                if((!writeModeEnabled) || (writeModeEnabled && instance._writer)){
+                                    if(callback){
+                                        callback(null, instance);
+                                    }
                                 }
                             }, function(error){
-                                callback(error, null);
+                                if(callback){
+                                    callback(error, null);
+                                }
                             });
                         }
 
@@ -246,89 +284,137 @@
                             instance._fileEntry.createWriter(function(fileWriter){
                                 instance._writer= fileWriter;
 
-                                callback(null, instance);
+                                if(truncateFile){
+                                    instance.truncate(0)
+                                }
+
+                                if(seekToEnd){
+                                    instance.seek(0, SEEK_END);
+                                }
+
+                                if((!readModeEnabled) || (readModeEnabled && instance._file)){
+                                    if(callback){
+                                        callback(null, instance);
+                                    }
+                                }
                             }, function(error){
-                                callback(error, null);
+                                if(callback){
+                                    callback(error, null);
+                                }
                             });
                         }
                     }, function(error){
-                        callback(error, null);
+                        if(callback){
+                            callback(error, null);
+                        }
                     });
             });
         }
-        ,close: function(){
-            // do stuff
-            this._file= null;
-            this._writer= null;
-
-            return this;
-        }
-        ,read: function(length, position, callback){
+        ,read: function(length, callback){
             var
-                reader= new FileReader()
-                ,pos= (position === null) ? this._offset : position
-                ,blob= this._file.slice(pos, length)
+                instance= this
+                ,reader= new FileReader()
+                ,endpos= ((length === undefined) || (length === null)) ? this._file.size : (this._offset + length)
+                ,blob= this._slice.call(this._file, this._offset, endpos)
             ;
 
-            reader.onloadend = function(e) {
+            reader.onload= function(event){
                 // The callback is given the three arguments, (err, bytesRead, buffer).
-                if(this.result !== null){
-                    this._offset= pos + e.loaded;
+                instance._offset+= event.loaded;
 
-                    callback(null, e.loaded, this.result);
-                } else{
-                    // TO DO -- An error object should be passed as the first parameter
-                    callback(e, 0, null);
+                if(callback){
+                    callback(null, event.loaded, event.target.result);
                 }
             };
 
+            reader.onerror= function(error){
+                if(callback){
+                    callback(error, 0, null);
+                }
+            };
+
+            reader.onabort= reader.onerror;
+
             if(this._binaryMode){
                 // TO DO -- readAsBinaryString, readAsArrayBuffer or readAsDataURL ?
-                reader.readAsBinaryString(file);
+                reader.readAsBinaryString(blob);
             } else{
-                reader.readAsText(file);
+                reader.readAsText(blob);
             }
         }
-        ,write: function(buffer, position, callback){
+        ,write: function(buffer, callback){
             var
-                builder= __global__.BlobBuilder || __global__.WebKitBlobBuilder
-                ,bb= new builder()
-                ,pos= (position === null) ? this._offset : position
+                instance= this
+                ,builderClass= __global__.BlobBuilder || __global__.WebKitBlobBuilder
+                ,builderInstance= new builderClass()
             ;
 
-            this._writer.onwriteend = function(e) {
-                this._offset= pos + e.loaded;
+            this._writer.onwrite= function(event){
+                instance._offset+= event.loaded;
 
                 // The callback will be given three arguments (err, written, buffer)
                 // where written specifies how many bytes were written into buffer.
-                callback(null, e.loaded, buffer);
+                if(callback){
+                    callback(null, event.loaded, buffer);
+                }
             };
 
-            this._writer.onerror = function(e) {
-                this._offset= pos + e.loaded;
+            this._writer.onerror= function(error){
+                // The operation may fail after writing some bytes.
+                // The offset in the file has to be updated according to the bytes written before the error
+                instance._offset+= error.loaded;
 
-                // TO DO -- An error object should be passed as the first parameter
-                callback(e, e.loaded, buffer);
+                if(callback){
+                    callback(error, error.loaded, buffer);
+                }
             };
 
-            bb.append(buffer);
+            this._writer.onabort= this._writer.onerror;
 
-            this._writer.seek(pos);
+            builderInstance.append(buffer);
+
+            this._writer.seek(this._offset);
 
             if(this._binaryMode){
                 // TO DO -- MIME Content-Type ?
-                this._writer.write(bb.getBlob());
+                this._writer.write(builderInstance.getBlob());
             } else{
-                this._writer.write(bb.getBlob('text/plain'));
+                this._writer.write(builderInstance.getBlob('text/plain'));
             }
         }
-        ,truncate: function(len, callback){
-            this._writer.truncate(len);
+        ,truncate: function(len){
+            var
+                length= ((len !== undefined) && (len !== null)) ? len : this._offset
+            ;
 
-            callback(null);
+            if(this._offset > length){
+                this._offset= length;
+                this._writer.seek(length);
+            }
+
+            this._writer.truncate(length);
         }
-        ,seek: function(offset){
-            this._offset= offset;
+        ,tell: function(){
+            return this._offset;
+        }
+        ,seek: function(offset, whence){
+            if(whence === SEEK_CUR){
+                // Relative to current position
+                this._offset+= offset;
+            } else if(whence === SEEK_END){
+                // Relative to file end
+                if(this._writer){
+                    this._offset= this._writer.length + offset;
+                } else if(this._file){
+                    this._offset= this._file.size + offset;
+                }
+            } else{
+                // Absolute indexing
+                this._offset= offset;
+            }
+        }
+        ,rewind: function(){
+            this._offset= 0;
         }
         ,readLine: function(size){}
         ,readLines: function(size){}
@@ -341,4 +427,6 @@
         }
     });
 })(this);
+
+// vim: set ts=4 sw=4 et:
 
