@@ -310,18 +310,17 @@
                     });
             });
         }
-        ,read: function(length, position, callback){
+        ,read: function(length, callback){
             var
                 instance= this
                 ,reader= new FileReader()
-                ,pos= ((position === undefined) || (position === null)) ? this._offset : position
-                ,endpos= ((length === undefined) || (length === null)) ? this._file.size : (pos + length)
-                ,blob= this._slice.call(this._file, pos, endpos)
+                ,endpos= ((length === undefined) || (length === null)) ? this._file.size : (this._offset + length)
+                ,blob= this._slice.call(this._file, this._offset, endpos)
             ;
 
             reader.onload= function(event){
                 // The callback is given the three arguments, (err, bytesRead, buffer).
-                instance._offset= pos + event.loaded;
+                instance._offset+= event.loaded;
 
                 if(callback){
                     callback(null, event.loaded, event.target.result);
@@ -343,16 +342,15 @@
                 reader.readAsText(blob);
             }
         }
-        ,write: function(buffer, position, callback){
+        ,write: function(buffer, callback){
             var
                 instance= this
                 ,builderClass= __global__.BlobBuilder || __global__.WebKitBlobBuilder
                 ,builderInstance= new builderClass()
-                ,pos= ((position === undefined) || (position === null)) ? this._offset : position
             ;
 
             this._writer.onwrite= function(event){
-                instance._offset= pos + event.loaded;
+                instance._offset+= event.loaded;
 
                 // The callback will be given three arguments (err, written, buffer)
                 // where written specifies how many bytes were written into buffer.
@@ -364,7 +362,7 @@
             this._writer.onerror= function(error){
                 // The operation may fail after writing some bytes.
                 // The offset in the file has to be updated according to the bytes written before the error
-                instance._offset= pos + error.loaded;
+                instance._offset+= error.loaded;
 
                 if(callback){
                     callback(error, error.loaded, buffer);
@@ -375,7 +373,7 @@
 
             builderInstance.append(buffer);
 
-            this._writer.seek(pos);
+            this._writer.seek(this._offset);
 
             if(this._binaryMode){
                 // TO DO -- MIME Content-Type ?
