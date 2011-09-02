@@ -315,7 +315,8 @@
                 instance= this
                 ,reader= new FileReader()
                 ,pos= ((position === undefined) || (position === null)) ? this._offset : position
-                ,blob= this._slice.call(this._file, pos, length)
+                ,endpos= ((length === undefined) || (length === null)) ? this._file.size : (pos + length)
+                ,blob= this._slice.call(this._file, pos, endpos)
             ;
 
             reader.onload= function(event){
