@@ -285,7 +285,7 @@
                                 instance._writer= fileWriter;
 
                                 if(truncateFile){
-                                    instance.truncate()
+                                    instance.truncate(0)
                                 }
 
                                 if(seekToEnd){
@@ -329,7 +329,6 @@
             };
 
             reader.onerror= function(error){
-                // TO DO -- An error object should be passed as the first parameter
                 if(callback){
                     callback(error, 0, null);
                 }
@@ -367,7 +366,6 @@
                 // The offset in the file has to be updated according to the bytes written before the error
                 instance._offset= pos + error.loaded;
 
-                // TO DO -- An error object should be passed as the first parameter
                 if(callback){
                     callback(error, error.loaded, buffer);
                 }
@@ -388,11 +386,12 @@
         }
         ,truncate: function(len){
             var
-                length= ((len !== undefined) && (len !== null)) ? len : 0
+                length= ((len !== undefined) && (len !== null)) ? len : this._offset
             ;
 
-            if(this.tell() > length){
-                this.seek(length);
+            if(this._offset > length){
+                this._offset= length;
+                this._writer.seek(length);
             }
 
             this._writer.truncate(len);
@@ -408,7 +407,6 @@
                 // Relative to file end
                 if(this._writer){
                     this._offset= this._writer.length + offset;
-                    this._writer.seek(this._offset);
                 } else if(this._file){
                     this._offset= this._file.size + offset;
                 }
