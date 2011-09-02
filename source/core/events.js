@@ -1,4 +1,4 @@
-(function(__global__){
+(function(__global__, undefined){
     /*
      * Request event handling
      * broke.request
@@ -139,4 +139,4 @@
                 }
             });
     });
-})(window);
+})(this);
