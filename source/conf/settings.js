@@ -60,6 +60,7 @@ broke.extend(broke.conf.settings, {
     ,FILE_SYSTEM: {
         SIZE: 5 * 1024 // 5 Kb default file system size
         ,PERSISTENT: true
+        ,HOME_DIR: "/"
     }
 
     ,FORM: null                        // default operation form
