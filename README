@@ -1,4 +1,7 @@
 Version 0.1
+Author: Davide Callegari <davide@brokenseal.it>
+Collaborators:
+    - Franco Bugnano <franco@bugnano.it>
 
 A client version of my Broke library, which is a porting of Django to Javascript.
 
