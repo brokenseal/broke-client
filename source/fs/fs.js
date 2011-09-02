@@ -6,15 +6,12 @@
 (function(__global__, undefined){
     var
         requestFileSystem= __global__.requestFileSystem || __global__.webkitRequestFileSystem
+        ,settings= broke.conf.settings
         ,defaultFileSystemType
         ,KB= 1024
         ,MB= KB * KB
         ,GB= MB * KB
         ,TB= GB * KB
-        // File.seek whence constants
-        ,SEEK_SET= 0
-        ,SEEK_CUR= 1
-        ,SEEK_END= 2
 
         // utility functions
         ,getFileSystem= function(callback){
@@ -69,7 +66,12 @@
         ,MB: MB
         ,GB: GB
         ,TB: TB
-
+        
+        // File.seek whence constants
+        ,SEEK_SET: 0
+        ,SEEK_CUR: 1
+        ,SEEK_END: 2
+        
         ,open: function(path, flags, callback){
             broke.fs.File(path, flags, callback);
         }
@@ -187,24 +189,11 @@
             });
         }
         //,readdirSync: function(path, callback){}
-
-        //,close: function(fd, callback){}
-        //,closeSync: function(fd){}
-        //,write: function(fd, buffer, offset, length, position, callback){}
-        //,writeSync: function(fd, buffer, offset, length, position){}
-        //,writeSync: function(fd, str, position, encoding){}
-        //,read: function(fd, buffer, offset, length, position, callback){}
-        //,readSync: function(fd, buffer, offset, length, position){}
-        //,readSync: function(fd, length, position, encoding){}
-        //,readFile: function(filename, [encoding], callback){}
-        //,readFileSync: function(filename, encoding){}
-        //,writeFile: function(filename, data, encoding, callback){}
-        //,writeFileSync: function(filename, data, encoding){}
-
+        
         // declared classes
         ,Directory: null
         ,File: null
-        ,Stats: null
+        ,FileSystem: null
     };
 
     Class.extend({
@@ -289,7 +278,7 @@
                                 }
 
                                 if(seekToEnd){
-                                    instance.seek(0, SEEK_END);
+                                    instance.seek(0, broke.fs.SEEK_END);
                                 }
 
                                 if((!readModeEnabled) || (readModeEnabled && instance._file)){
@@ -398,10 +387,10 @@
             return this._offset;
         }
         ,seek: function(offset, whence){
-            if(whence === SEEK_CUR){
+            if(whence === broke.fs.SEEK_CUR){
                 // Relative to current position
                 this._offset+= offset;
-            } else if(whence === SEEK_END){
+            } else if(whence === broke.fs.SEEK_END){
                 // Relative to file end
                 if(this._writer){
                     this._offset= this._writer.length + offset;
@@ -412,6 +401,8 @@
                 // Absolute indexing
                 this._offset= offset;
             }
+
+            return this;
         }
         ,rewind: function(){
             this._offset= 0;
@@ -425,8 +416,8 @@
         ,__init__: function(directoryEntry){
             this.directoryEntry= directoryEntry;
         }
+        ,read: function(){}
     });
 })(this);
 
 // vim: set ts=4 sw=4 et:
-
