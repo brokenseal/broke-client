@@ -82,7 +82,7 @@ broke.extend(broke.conf.settings, {
                                     // from the main url
                                     // careful: it will prevent any default action
                                     // from the browser from your event
-                                    // equivalent of doing 'event.preventDefault();'
+                                    // equivalent to 'event.preventDefault();'
 
     ,JSON_URLS: null
 
