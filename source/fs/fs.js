@@ -7,7 +7,6 @@
     var
         requestFileSystem= __global__.requestFileSystem || __global__.webkitRequestFileSystem
         ,settings= broke.conf.settings
-        ,defaultFileSystemType
         ,KB= 1024
         ,MB= KB * KB
         ,GB= MB * KB
@@ -44,21 +43,6 @@
 
             return [ dirPath, fileName ];
         }
-        ,fireCallbacks= function(callbacks){
-            var
-                len
-                ,fireCallback= function(cb, innerArgs){
-                    cb.apply(this, innerArgs);
-                }
-                ,args= Array.prototype.slice.call(arguments, 1)
-            ;
-
-            len= callbacks.length;
-            while(len--) {
-                // fire the callback function as soon as possible, without blocking the UI
-                setTimeout(fireCallback, 0, callbacks[len], args);
-            }
-        }
     ;
 
     broke.fs= {
@@ -75,8 +59,6 @@
         ,open: function(path, flags, callback){
             broke.fs.File(path, flags, callback);
         }
-        //,openSync: function(path, flags, mode){}
-
         ,unlink: function(path, callback){
             fs.root.getFile(path, {
                 create: false
@@ -90,8 +72,6 @@
                 callback(error);
             });
         }
-        //,unlinkSync: function(path){}
-
         ,rename: function(fromPath, toPath, callback){
             var
                 tmpFromPath= splitPath(fromPath)
@@ -125,8 +105,6 @@
                 });
             });
         }
-        //,renameSync: function(fromPath, toPath){}
-
         ,rmdir: function(path, callback){
             getFileSystem(function(fs){
                 fs.root.getDirectory(function(directoryEntry){
@@ -134,8 +112,6 @@
                 });
             });
         }
-        //,rmdirSync: function(path, callback){}
-
         ,mkdir: function(path, callback){
             var
                 folders= path.split('/')
@@ -161,8 +137,6 @@
                 createDir(fs.root, folders.shift());
             });
         }
-        //,mkdirSync: function(path, mode, callback){}
-
         ,readdir: function(path, callback){
             getFileSystem(function(fs){
                 fs.root.getDirectory(function(directoryEntry){
@@ -188,8 +162,7 @@
                 });
             });
         }
-        //,readdirSync: function(path, callback){}
-        
+
         // declared classes
         ,Directory: null
         ,File: null
