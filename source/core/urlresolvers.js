@@ -1,6 +1,7 @@
-(function(__global__, undefined){
+;(function(__global__, undefined){
 	var
 		exceptions= broke.exceptions
+        ,settings= broke.conf.settings
 	;
 	
 	broke.urlResolvers= {
@@ -55,7 +56,7 @@
                 ,urlPattern
             ;
 
-            urlPatterns= urlPatterns || broke.urlPatterns;
+            urlPatterns= urlPatterns || builtins.getattr(settings.ROOT_URLCONF);
             args= args || [];
 
             for(i= 0; i< urlPatterns.length; i++) {
@@ -96,7 +97,7 @@
                 ,urlPattern
             ;
 
-            urlPatterns= urlPatterns || broke.urlPatterns;
+            urlPatterns= urlPatterns || builtins.getattr(settings.ROOT_URLCONF);
             result= result || '';
             args= args || [];
 
@@ -136,6 +137,65 @@
             throw exceptions.NoReverseMatch(gettext.gettext('Matching url not found.'));
 
             return null;
+        }
+        ,replaceNamedUrls: function(){
+            // TODO: is this really useful? Should I refactor it to search named urls on templates only?
+            /*
+             * Search for named urls on the page and swap them with full qualified urls
+             * Named urls on the page should look like this:
+             *     #entry-commit     ->    /blog/entry/commit/
+             *     #entry-view       ->    /blog/entry/view/2/
+             *     #entry-edit 21,2  ->    /blog/21/entry/edit/2/
+             *
+             * If any arguments are needed, they will have to be a comma separated
+             * series of values after the named url
+             *
+             */
+
+            var
+                callback= function(urlChangingElement){
+                    var
+                        _this= $(this)
+                        ,urlAttribute= urlChangingElement.urlAttribute
+                        ,urlToRender= _this.attr(urlAttribute).split('#')[1] || ''
+                        ,namedUrl
+                        ,args
+                        ,result
+                    ;
+
+                    if(_this.attr(urlAttribute).contains('#')) {
+                        urlToRender= urlToRender.trim().split(' ');
+
+                        namedUrl= urlToRender[0];
+                        args= urlToRender[1];
+                        if(args) {
+                            args= args.split(',');
+                        } else {
+                            args= [];
+                        }
+
+                        try {
+
+                            result= broke.urlResolvers.reverse(namedUrl, args);
+                            _this.attr(urlAttribute, '#' + result);
+
+                        } catch(e) {
+                            if(e.name == "NoReverseMatch") {
+                                return;
+                            }
+                        }
+                    }
+                }
+            ;
+
+            builtins.forEach(broke.conf.settings.URL_CHANGING_ELEMENTS, function(key){
+                var elements= $(key),
+                    elementsLength= elements.length;
+
+                while(elementsLength--) {
+                    callback.call(elements[elementsLength], this);
+                }
+            });
         }
     };
 })(this);

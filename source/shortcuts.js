@@ -1,8 +1,4 @@
-/****************************************************************************/
-/******************************* SHORTCUTS **********************************/
-/****************************************************************************/
-
-(function(){
+;(function(undefined){
     var
         applyContextProcessors= function(response){
             builtins.forEach(broke.conf.settings.CONTEXT_PROCESSORS, function(){
@@ -16,7 +12,7 @@
         ,renderToString= broke.template.loader.renderToString
     ;
     
-    broke.extend(broke.shortcuts, {
+    broke.shortcuts= {
         node: {
             create: function(response){
                 /* response= {
@@ -161,5 +157,5 @@
                 return true;
             }
         }
-    });
+    };
 })();

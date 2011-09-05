@@ -1,11 +1,74 @@
-(function(__global__, undefined){
-    /*
-     * Request event handling
-     * broke.request
-     * 
-     */
+;(function(__global__, undefined){
+    var
+        isReady= false
+        ,requestEventName= 'broke.request'
+        ,responseEventName= 'broke.response'
+    ;
     
-    broke.bindToRequest(function(e, request, extraArgs, responseCallback){
+    broke.events= {
+        isReady: function(){
+            return isReady;
+        }
+        // used for internal purpose only
+        ,ready: function(){
+            isReady= true;
+            broke.DOM.$window.trigger('broke.ready');
+            
+            // make sure no one else fires this
+            delete broke.events.ready;
+        }
+        ,onReady: function(fn) {
+            if(isReady) {
+                fn();
+            }
+            
+            broke.DOM.$window.bind('broke.ready', fn);
+        }
+        ,unBindOnReady: function(fn){
+            if(fn === undefined) {
+                broke.DOM.$window.unbind('broke.ready');
+                return;
+            }
+            
+            broke.DOM.$window.unbind('broke.ready', fn);
+        }
+        ,preSave: function(klass, fn){
+            broke.DOM.$window.bind('broke.' + klass.__name__.toLowerCase() + '.pre_save', fn);
+        }
+        ,postSave: function(klass, fn){
+            broke.DOM.$window.bind('broke.' + klass.__name__.toLowerCase() + '.post_save', fn);
+        }
+        ,bindToRequest: function(fn){
+            broke.DOM.$window.bind(requestEventName, fn);
+        }
+        ,bindToResponse: function(fn){
+            broke.DOM.$window.bind(responseEventName, fn);
+        }
+        ,request: function(args, extraArgs){
+            var
+                req= {}
+            ;
+
+            if(builtins.typeOf(args) == 'string') {
+                // first case: broke.events.request('/entry/view/1/');
+                req.url= args;
+            } else {
+                // second case: broke.events.request({
+                //     url: '/entry/view/1/',
+                //     fromReload: true
+                // });
+                req= args;
+            }
+
+            broke.DOM.$window.trigger(requestEventName, [req, extraArgs]);
+        }
+        ,response: function(){
+            broke.DOM.$window.trigger(responseEventName, arguments);
+        }
+    };
+    
+    // Request event handling
+    broke.events.bindToRequest(function(e, request, extraArgs, responseCallback){
         var
             response= {}
             ,view= null
@@ -109,12 +172,8 @@
         }
     });
     
-    /*
-     * Response event handling
-     * broke.response
-     * 
-     */
-    broke.bindToResponse(function(e, response, extraArgs, responseCallback){
+    // Response event handling
+    broke.events.bindToResponse(function(e, response, extraArgs, responseCallback){
             
             extraArgs= extraArgs || [];
             

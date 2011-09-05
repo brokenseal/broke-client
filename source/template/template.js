@@ -6,9 +6,7 @@
  */
 
 (function(){
-    var template= broke.template;
-    
-    broke.extend(template, {
+    broke.template= {
         // constants
         TOKEN_TEXT: 0,
         TOKEN_VAR: 1,
@@ -44,7 +42,7 @@
         ,getVar: function(context, varstr) {
             return builtins.getattr(varstr, context);
         }
-    });
+    };
     
     Class.create({
         __name__: "broke.template.Template"

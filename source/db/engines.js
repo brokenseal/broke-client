@@ -1,4 +1,4 @@
-(function(){
+;(function(undefined){
     var
         settings= broke.conf.settings
         ,NotImplementedError= broke.exceptions.NotImplementedError
@@ -191,11 +191,11 @@
             });
         }
     ;
-    
+
     broke.db.engines= {
         OPERATIONS: OPERATIONS
     };
-    
+
     BaseEngine= Class.create({
         __name__: "broke.db.engines.BaseEngine"
         ,__init__: function(kwargs){
@@ -224,42 +224,45 @@
                     var
                         result
                     ;
-                    
+
                     if(operationResult && builtins.typeOf(operationResult) == "array") {
-                        
+
                         result= builtins.map(operationResult, function(){
                             return engine.model(this);
                         });
-                        
+
                         saveRelatedObjectsOnLocalEngine(result);
-                        
+
                     } else if(builtins.typeOf(operationResult) == "object") {
                         result= engine.model(operationResult);
-                        
+
                         saveRelatedObjectsOnLocalEngine([result]);
                     }
-                    
-                    
+                
                     if(callback) {
                         callback(result, status, xhr, error);
                     }
                 }
             ;
-            
+
             return this[this.operation](executeCallback);
         }
     });
-    
+
     LocalEngine= BaseEngine.create({
         __name__: "broke.db.engines.LocalEngine"
+        ,storage: broke.storages.JSONSchema
+        ,initTableForModel: function(model, objects){
+            return this.storage.initTableForModel(model, objects);
+        }
         ,select: function(callback){
             var
-                data= broke.storage[this.model.getTableName()]
+                data= this.storage.getTable(this.model.getTableName())
             ;
             
             data= applyFilters(this, data, this.args.filter);
             data= applyFilters(this, data, this.args.exclude, true);
-            
+
             callback(data);
         }
         ,insert: function(callback){
@@ -269,15 +272,15 @@
                 ,dataTableName= this.model.getTableName()
                 ,data
             ;
-            
+
             if(builtins.typeOf(this.args.insert) == "array") {
                 data= [];
-                
+
                 builtins.forEach(this.args.insert, function(){
-                    data.push(broke.schema.set(dataTableName, this));
+                    data.push(this.storage.set(dataTableName, this));
                 });
             } else {
-                data= broke.schema.set(dataTableName, this.args.insert);
+                data= this.storage.set(dataTableName, this.args.insert);
             }
             
             callback(data);

@@ -1,13 +1,21 @@
-(function(){
+;(function(undefined){
     var
         Model
         ,models= broke.db.models
         ,Manager= models.Manager
         ,elementsCache= {}
+        ,contentTypeCache= {}
     ;
     
     builtins.extend(broke.db.models, {
-        getDbFromModel: function(operation, model){
+        addContentType: function(appLabel, modelName, model){
+            if(contentTypeCache[appLabel] === undefined) {
+                contentTypeCache[appLabel]= {};
+            }
+            
+            contentTypeCache[appLabel][modelName]= model;
+        }
+        ,getDbFromModel: function(operation, model){
             var
                 routers= broke.conf.settings.DATABASE_ROUTERS
                 ,routersLen= routers.length
@@ -33,7 +41,7 @@
             return broke.db.models.getDbFromModel('dbForWrite', model);
         }
         ,getModel: function(appLabel, modelName){
-            return broke.contentTypeCache[appLabel][modelName];
+            return contentTypeCache[appLabel][modelName];
         }
         ,compareObjects: function(firstObject, secondObject){
             if(firstObject.__class__.__fullname__ == secondObject.__class__.__fullname__ && firstObject.pk == secondObject.pk) {
@@ -41,6 +49,36 @@
             }
             
             return false;
+        }
+        ,fetchDataForModel: function(model, args){
+            // TODO: is this still useful? if yes, it needs refactor
+            var
+                settings= broke.conf.settings
+                ,url= args.url || builtins.interpolate(settings.JSON_URLS.getData, {
+                    appLabel: model.appLabel
+                    ,model: model.className.toLowerCase()
+                })
+                ,filter= args.filter || {}
+                ,result
+                ,defaultDbEngine= builtins.getattr(settings.DATABASES['default'].ENGINE);
+            ;
+
+            $.ajax({
+                async: false,
+                type: "GET",
+                url: url,
+                data: filter,
+                dataType: settings.AJAX.dataType,
+                error: function(xhr, status, error){
+                    result= error;
+                },
+                success: function(data, status){
+                    defaultDbEngine.initTableForModel(model, data);
+                    result= data;
+                }
+            });
+
+            return result;
         }
     });
     
@@ -77,10 +115,6 @@
         ,getTableName: function(){
             if(!this._tableName){
                 this._tableName= [this.appLabel, this.__name__.toLowerCase()].join('_');
-                
-                if(!broke.storage[this._tableName]) {
-                    broke.storage[this._tableName]= [];
-                }
             }
             
             return this._tableName;
@@ -278,7 +312,7 @@
             operation= saveSettings.operation ? 'delete' : 'save';
             
             // trigger model pre_save event
-            broke.$window.trigger('broke.' + className + '.pre_' + operation, [object]);
+            broke.DOM.$window.trigger('broke.' + className + '.pre_' + operation, [object]);
             
             if(operation == 'save' && object.pk) {
                 serverOperation= 'update';
@@ -315,7 +349,7 @@
                     ,settings: saveSettings
                 }).execute(function(data, status, xhr, error){
                     
-                    broke.$window.trigger('broke.' + className + '.post_' + engineOperation, [object]);
+                    broke.DOM.$window.trigger('broke.' + className + '.post_' + engineOperation, [object]);
                     
                     if(callback) {
                         callback(data);
