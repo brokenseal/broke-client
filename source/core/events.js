@@ -3,6 +3,7 @@
         isReady= false
         ,requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
+        ,$window= $(window)
     ;
     
     broke.events= {
@@ -12,7 +13,7 @@
         // used for internal purpose only
         ,ready: function(){
             isReady= true;
-            broke.DOM.$window.trigger('broke.ready');
+            $window.trigger('broke.ready');
             
             // make sure no one else fires this
             delete broke.events.ready;
@@ -22,27 +23,27 @@
                 fn();
             }
             
-            broke.DOM.$window.bind('broke.ready', fn);
+            $window.bind('broke.ready', fn);
         }
         ,unBindOnReady: function(fn){
             if(fn === undefined) {
-                broke.DOM.$window.unbind('broke.ready');
+                $window.unbind('broke.ready');
                 return;
             }
             
-            broke.DOM.$window.unbind('broke.ready', fn);
+            $window.unbind('broke.ready', fn);
         }
         ,preSave: function(klass, fn){
-            broke.DOM.$window.bind('broke.' + klass.__name__.toLowerCase() + '.pre_save', fn);
+            $window.bind('broke.' + klass.__name__.toLowerCase() + '.pre_save', fn);
         }
         ,postSave: function(klass, fn){
-            broke.DOM.$window.bind('broke.' + klass.__name__.toLowerCase() + '.post_save', fn);
+            $window.bind('broke.' + klass.__name__.toLowerCase() + '.post_save', fn);
         }
         ,bindToRequest: function(fn){
-            broke.DOM.$window.bind(requestEventName, fn);
+            $window.bind(requestEventName, fn);
         }
         ,bindToResponse: function(fn){
-            broke.DOM.$window.bind(responseEventName, fn);
+            $window.bind(responseEventName, fn);
         }
         ,request: function(args, extraArgs){
             var
@@ -60,10 +61,10 @@
                 req= args;
             }
 
-            broke.DOM.$window.trigger(requestEventName, [req, extraArgs]);
+            $window.trigger(requestEventName, [req, extraArgs]);
         }
         ,response: function(){
-            broke.DOM.$window.trigger(responseEventName, arguments);
+            $window.trigger(responseEventName, arguments);
         }
     };
     

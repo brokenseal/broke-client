@@ -5,6 +5,7 @@
         ,Manager= models.Manager
         ,elementsCache= {}
         ,contentTypeCache= {}
+        ,$window= $(window)
     ;
     
     builtins.extend(broke.db.models, {
@@ -312,7 +313,7 @@
             operation= saveSettings.operation ? 'delete' : 'save';
             
             // trigger model pre_save event
-            broke.DOM.$window.trigger('broke.' + className + '.pre_' + operation, [object]);
+            $window.trigger('broke.' + className + '.pre_' + operation, [object]);
             
             if(operation == 'save' && object.pk) {
                 serverOperation= 'update';
@@ -349,7 +350,7 @@
                     ,settings: saveSettings
                 }).execute(function(data, status, xhr, error){
                     
-                    broke.DOM.$window.trigger('broke.' + className + '.post_' + engineOperation, [object]);
+                    $window.trigger('broke.' + className + '.post_' + engineOperation, [object]);
                     
                     if(callback) {
                         callback(data);
