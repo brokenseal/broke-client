@@ -5,7 +5,6 @@
         ,Manager= models.Manager
         ,elementsCache= {}
         ,contentTypeCache= {}
-        ,$window= $(window)
     ;
     
     builtins.extend(broke.db.models, {
@@ -203,10 +202,10 @@
             }
             
             if(clearCache) {
-                elements= $(filterExpression, context);
+                elements= broke.DOM.querySelector(filterExpression, context);
                 
                 if(extraFilter) {
-                    elements= elements.filter(extraFilter);
+                    elements= broke.DOM.m.filter(elements, extraFilter);
                 }
                 
                 elementsCache[filterExpression]= elements;

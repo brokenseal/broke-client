@@ -28,11 +28,20 @@
 
             return;
         }
-        ,val: function(object){
-            return jQuery.fn.val(object);
+        ,val: function(object, value){
+            var
+                result= jQuery.fn.val(object, value)
+            ;
+            
+            return value ? value : result;
         }
-        ,attr: function(object, attributeName){
-            return jQuery.fn.attr(object, attributeName);
+        ,attr: function(object, attributeName, value){
+            return jQuery.fn.attr(object, attributeName, value);
+        }
+        ,html: function(element, htmlString){
+            jQuery.fn.html(element, htmlString);
+            
+            return element;
         }
         ,manipulation: {
             append: function(elementToAppend, parentElement){
@@ -40,11 +49,26 @@
 
                 return elementToAppend;
             }
+            ,clone: function(object){
+                return jQuery.fn.clone(object, false);
+            }
             ,create: function(elementName, properties){
                 return jQuery('<' + elementName + ' />', properties);
             }
-            ,clone: function(object){
-                return jQuery.fn.clone(object, false);
+            ,createFromString: function(htmlString){
+                var
+                    html= $(htmlString)
+                ;
+                
+                return html.length ? [].concat(html) : html[0];
+            }
+            ,filter: function(elements, filterExpression){
+                return [].concat($(elements).filter(filterExpression));
+            }
+            ,replace: function(firstElement, secondElement){
+                $(firstElement).replaceWith(secondElement);
+
+                return firstElement;
             }
         }
         // events naming follow jquery convention, stripping down the initial 'on' and keeping everything lower case

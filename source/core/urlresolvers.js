@@ -155,15 +155,15 @@
             var
                 callback= function(urlChangingElement){
                     var
-                        _this= $(this)
+                        attr= broke.DOM.attr
                         ,urlAttribute= urlChangingElement.urlAttribute
-                        ,urlToRender= _this.attr(urlAttribute).split('#')[1] || ''
+                        ,urlToRender= attr(this, urlAttribute).split('#')[1] || ''
                         ,namedUrl
                         ,args
                         ,result
                     ;
 
-                    if(_this.attr(urlAttribute).contains('#')) {
+                    if(attr(this, urlAttribute).contains('#')) {
                         urlToRender= urlToRender.trim().split(' ');
 
                         namedUrl= urlToRender[0];
@@ -177,7 +177,7 @@
                         try {
 
                             result= broke.urlResolvers.reverse(namedUrl, args);
-                            _this.attr(urlAttribute, '#' + result);
+                            attr(this, urlAttribute, '#' + result);
 
                         } catch(e) {
                             if(e.name == "NoReverseMatch") {
@@ -189,9 +189,11 @@
             ;
 
             builtins.forEach(broke.conf.settings.URL_CHANGING_ELEMENTS, function(key){
-                var elements= $(key),
-                    elementsLength= elements.length;
-
+                var
+                    elements= broke.DOM.querySelector(key)
+                    ,elementsLength= elements.length
+                ;
+                
                 while(elementsLength--) {
                     callback.call(elements[elementsLength], this);
                 }

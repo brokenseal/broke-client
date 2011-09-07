@@ -3,7 +3,6 @@
         isReady= false
         ,requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
-        ,$window= $(window)
     ;
     
     broke.events= {
@@ -108,11 +107,8 @@
             
             request.GET= queryString;
         } else if('event' in request && request.event.target.tagName.toLowerCase() === "form"){
-            target= $(request.event.target);
-            
-            target.find('input,select,textarea').each(function(){
-                    var input= $(this);
-                    queryString[input.attr('name')]= input.val();
+            builtins.forEach(broke.DOM.q('inputy,select,textarea', request.event.target), function(){
+                queryString[input.attr('name')]= broke.DOM.val(this);
             });
             
             request.POST= queryString;

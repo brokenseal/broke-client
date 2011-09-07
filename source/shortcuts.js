@@ -32,9 +32,9 @@
                     allowedMethods= ['after', 'before', 'append', 'prepend', 'wrap']
                     ,context= applyContextProcessors(response)
                     ,renderedTemplate= renderToString(response.template, context)
-                    ,newElement= $(renderedTemplate)
+                    ,newElement= broke.DOM.m.createFromString(renderedTemplate)
                 ;
-                
+
                 // default arguments
                 response= broke.extend({
                     method: 'append',
@@ -45,7 +45,8 @@
                     throw broke.exceptions.NotImplementedError(builtins.interpolate(gettext.gettext("The selected template's method (%s) is not implemented. Options are: after, before, append, prepend, wrap"), response.method));
                 }
                 
-                $(response.htmlNode)[response.method](newElement);
+                // append support only, for now
+                broke.DOM.m.append(newElement, response.htmlNode);
                 
                 response.element= newElement;
                 
@@ -69,11 +70,11 @@
                 var
                     context= applyContextProcessors(response)
                     ,renderedTemplate= renderToString(response.template, context)
-                    ,newElement= $(renderedTemplate)
+                    ,newElement= broke.DOM.m.createFromString(renderedTemplate)
                 ;
                 
-                //replace
-                $(response.htmlNode).replaceWith(newElement);
+                // replace
+                broke.DOM.m.replace(response.htmlNode, newElement);
                 
                 response.element= newElement;
                 
@@ -133,20 +134,20 @@
                 if(!builtins.has(acceptedAttributes, response.attribute)) {
                     throw broke.exceptions.NotImplementedError(builtins.interpolate(gettext.gettext("You can not use %s's attribute. Options are: class, rel"), response.attribute));
                 }
-                
-                $(response.htmlNode).find(searchFor).each(function(){
+
+                builtins.forEach(broke.DOM.querySelector(searchFor, response.htmlNode), function(){
                     var
-                        _this= $(this)
+                        attr= broke.DOM.attr
                         ,key
                     ;
                     
                     for(key in response.object.fields) {
                         
-                        if(response.object.fields.hasOwnProperty(key) && _this.attr(response.attribute) !== undefined) {
+                        if(response.object.fields.hasOwnProperty(key) && attr(this, response.attribute) !== undefined) {
                             
-                            if(_this.attr(response.attribute).contains(key)) {
+                            if(attr(this, response.attribute).contains(key)) {
                                 // update the node
-                                _this.html(response.object.fields[key]);
+                                broke.DOM.html(this, response.object.fields[key]);
                             }
                         }
                     }

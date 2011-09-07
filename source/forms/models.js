@@ -19,39 +19,41 @@
         }
         ,saveAsFormPost= function(data){
             var
-                form= $('<form action="." method="post" style="display:none;"></form>')
-                ,field= $('<textarea></textarea>')
+                form= broke.DOM.m.create('form', {
+                    action: '.'
+                    ,method:'post'
+                    ,style:'display:none;'
+                })
+                ,field= broke.DOM.m.create('textarea')
                 ,newField
+                ,body= broke.DOM.m.querySelector('body')
             ;
             
             builtins.forEach(data, function(key){
-                newField= field.clone();
-                newField.attr('name', key);
+                newField= broke.DOM.m.clone(field);
+                broke.DOM.attr(newField, 'name', key);
                 
                 if(builtins.typeOf(this) == "boolean") {
                     if(this == true) {
-                        newField.val('on');
-                        form.append(newField);
+                        broke.DOM.val(newField, 'on');
+                        broke.DOM.m.append(newField, form);
                     }
                 } else if(builtins.typeOf(this) == "array") {
                     builtins.forEach(this, function(){
-                        newField= field.clone();
-                        newField.val(this);
-                        newField.attr('name', key);
-                        
-                        form.append(newField);
+                        newField= broke.DOM.m.clone(field);
+                        broke.DOM.val(newField, this);
+                        broke.DOM.attr(newField, 'name', key);
+                        broke.DOM.m.append(newField, form);
                     });
                 } else {
-                    newField.val(this);
-                    form.append(newField);
+                    broke.DOM.val(newField, this);
+                    broke.DOM.m.append(newField, form);
                 }
             });
-            
-            form
-                .appendTo('body')
-                .submit()
-            ;
-            
+        
+            broke.DOM.m.append(form, body);
+            broke.DOM.e.trigger(form, 'submit');
+                
             return form;
         }
     ;
