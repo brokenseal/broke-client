@@ -3,6 +3,7 @@
         isReady= false
         ,requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
+        ,events= broke.DOM.events
     ;
     
     broke.events= {
@@ -12,7 +13,7 @@
         // used for internal purpose only
         ,ready: function(){
             isReady= true;
-            $window.trigger('broke.ready');
+            events.trigger(window, 'broke.ready');
             
             // make sure no one else fires this
             delete broke.events.ready;
@@ -22,27 +23,35 @@
                 fn();
             }
             
-            $window.bind('broke.ready', fn);
+            events.addListener(window, 'broke.ready', fn);
         }
         ,unBindOnReady: function(fn){
             if(fn === undefined) {
-                $window.unbind('broke.ready');
+                events.removeListener(window, 'broke.ready');
                 return;
             }
             
-            $window.unbind('broke.ready', fn);
+            events.removeListener(window, 'broke.ready', fn);
         }
         ,preSave: function(klass, fn){
-            $window.bind('broke.' + klass.__name__.toLowerCase() + '.pre_save', fn);
+            var
+                eventName= 'broke.' + klass.__name__.toLowerCase() + '.pre_save'
+            ;
+
+            events.addListener(window, eventName, fn);
         }
         ,postSave: function(klass, fn){
-            $window.bind('broke.' + klass.__name__.toLowerCase() + '.post_save', fn);
+            var
+                eventName= 'broke.' + klass.__name__.toLowerCase() + '.post_save'
+            ;
+            
+            events.addListener(window, eventName, fn);
         }
         ,bindToRequest: function(fn){
-            $window.bind(requestEventName, fn);
+            events.addListener(window, requestEventName, fn);
         }
         ,bindToResponse: function(fn){
-            $window.bind(responseEventName, fn);
+            events.addListener(window, responseEventName, fn);
         }
         ,request: function(args, extraArgs){
             var
@@ -60,13 +69,14 @@
                 req= args;
             }
 
+            events.trigger(window, requestEventName, fn);
             $window.trigger(requestEventName, [req, extraArgs]);
         }
         ,response: function(){
             $window.trigger(responseEventName, arguments);
         }
     };
-    
+
     // Request event handling
     broke.events.bindToRequest(function(e, request, extraArgs, responseCallback){
         var
@@ -81,9 +91,9 @@
             ,queryString= {}
             ,resolve= broke.urlResolvers.resolve
         ;
-        
+
         extraArgs= extraArgs || [];
-        
+
         request= broke.extend({
             completeUrl: window.location.href,
             method: 'GET',
@@ -94,43 +104,43 @@
             POST: {},
             REQUEST: {}
         }, request);
-        
+
         if(!request.url) {
             return;
         }
-        
+
         // set GET/POST/REQUEST
         partialUrl= request.url.split('?');
         if(partialUrl.length > 1) {
             request.url= partialUrl[0];
             queryString= parseQueryString(partialUrl[1]);
-            
+
             request.GET= queryString;
         } else if('event' in request && request.event.target.tagName.toLowerCase() === "form"){
             builtins.forEach(broke.DOM.q('inputy,select,textarea', request.event.target), function(){
                 queryString[input.attr('name')]= broke.DOM.val(this);
             });
-            
+
             request.POST= queryString;
         }
         request.REQUEST= queryString;
-        
+
         // set META
         request.META= {
             HTTP_REFERER: window.location.href.split('#')[1] || ''
         };
-        
+
         // middleware fetching
         builtins.forEach(broke.conf.settings.MIDDLEWARE_CLASSES, function(){
             var
                 middleware= builtins.getattr(this, __global__, {})
             ;
-            
+
             if(middleware.processRequest !== undefined) {
                 middleware.processRequest.apply(this, [request].concat(extraArgs));
             }
         });
-        
+
         // url dispatcher
         try {
             urlMatchResult= resolve(request.url);
@@ -139,57 +149,57 @@
                 //builtins.getattr(broke.conf.settings.HANDLER_404)(request);
                 broke.response(response);
                 return;
-                
+
             } else {
                 throw error;
             }
         }
-        
+
         if(urlMatchResult) {
             view= urlMatchResult[0];
             args= urlMatchResult[1];
-            
+
             if(extraArgs) {
                 args= args.concat(extraArgs);
             }
-            
+
             // put the request object as the first argument
             args.unshift(request);
-            
+
             // create the callback function for the response to be taken
             callback= function(response){
                 response= broke.extend(request, response);
                 broke.response(response, extraArgs, responseCallback);
             };
-            
+
             // put the callback as the last argument
             args.push(callback);
-            
+
             view.apply(this, args);
         }
     });
-    
+
     // Response event handling
     broke.events.bindToResponse(function(e, response, extraArgs, responseCallback){
-            
+
             extraArgs= extraArgs || [];
-            
+
             // apply additional properties
             builtins.forEach(response.additionalProperties, function(key){
                 response.element[key]= this;
             });
-            
+
             // apply callback
             if(builtins.typeOf(response.callback) == 'function') {
                 response.callback.apply(response.element);
             }
-            
+
             // --------- middleware fetching in reverse order ---------
             builtins.forEach(broke.conf.settings.MIDDLEWARE_CLASSES.reverse(), function(){
                 var
                     middleware= builtins.getattr(this, __global__, {})
                 ;
-                
+
                 if(middleware.processResponse !== undefined) {
                     middleware.processResponse.apply(this, [response].concat(extraArgs));
                 }
