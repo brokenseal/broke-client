@@ -4,6 +4,13 @@
         ,requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
         ,events= broke.DOM.events
+
+        // utility functions
+        ,fireCallbacks= function(callbacks, args){
+            builtins.forEach(callbacks, function(){
+                this.apply(__global__, args);
+            });
+        }
     ;
     
     broke.events= {
@@ -75,8 +82,118 @@
         ,response: function(){
             $window.trigger(responseEventName, arguments);
         }
+
+        // some class declarations
+        ,Deferred: null
+        ,When: null
     };
 
+    // mime jquery deferred api (CommonJS Promises/A design)
+    Class.create({
+        __name__: "broke.events.Deferred"
+        
+        // should make these attributes private or at least very hard to access
+        ,_resolved: false
+        ,_rejected: false
+        ,_onSuccessCallbacks: []
+        ,_onErrorCallbacks: []
+        ,_onCompleteCallbacks: []
+        ,_completedWithArgs: null
+
+        ,then: function(onSuccessCallback, onErrorCallback){
+
+            if(this.isResolved()) {
+                fireCallbacks(onSuccessCallback, this._completedWithArgs);
+            } else if(this.isRejected()){
+                fireCallbacks(onErrorCallback, this._completedWithArgs);
+            }
+            
+            this._onSuccessCallbacks.push(onSuccessCallback);
+            this._onErrorCallbacks.push(onErrorCallback);
+            
+            return this;
+        }
+        ,resolve: function(){
+            var
+                args
+            ;
+            
+            if(this.isResolved()) {
+                // refuse to resolve an already resolved deferred
+                return this;
+            }
+            
+            fireCallbacks(this._onSuccessCallbacks, args);
+            fireCallbacks(this._onCompleteCallbacks, args);
+
+            this._completedWithArgs= args;
+
+            return this;
+        }
+        ,reject: function(){
+            var
+                args
+            ;
+
+            if(this.isRejected()) {
+                // refuse to reject an already rejected deferred
+                return this;
+            }
+
+            args= Array.prototype.slice.call(arguments);
+            
+            fireCallbacks(this._onErrorCallbacks, args);
+            fireCallbacks(this._onCompleteCallbacks, args);
+            
+            this._completedWithArgs= args;
+
+            return this;
+        }
+        ,isResolved: function(){
+            return this._rejected;
+        }
+        ,isRejected: function(){
+            return this._resolved;
+        }
+        ,always: function(){
+            if(this.isResolved() || this.isRejected()) {
+                fireCallbacks(arguments, this._completedWithArgs);
+            }
+            
+            this._onCompleteCallbacks= this._onCompleteCallbacks.concat(arguments);
+            
+            return this;
+        }
+        ,done: function(){
+            if(this.isResolved()) {
+                fireCallbacks(arguments, this._completedWithArgs);
+            }
+
+            this._onSuccessCallbacks= this._onSuccessCallbacks.concat(arguments);
+
+            return this;
+        }
+        ,fail: function(){
+            if(this.isRejected()) {
+                fireCallbacks(arguments, this._completedWithArgs);
+            }
+
+            this._onErrorCallbacks= this._onErrorCallbacks.concat(arguments);
+
+            return this;
+        }
+    });
+
+    Class.create({
+        __name__: "broke.events.When"
+        ,__init__: function(){
+            this.deferreds= Array.prototype.slice.call(arguments);
+        }
+        ,then: function(onSuccessCallback, onErrorCallback){
+            // TODO
+        }
+    });
+    
     // Request event handling
     broke.events.bindToRequest(function(e, request, extraArgs, responseCallback){
         var
