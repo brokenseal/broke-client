@@ -114,38 +114,28 @@
             return this;
         }
         ,resolve: function(){
-            var
-                args
-            ;
-            
             if(this.isResolved()) {
                 // refuse to resolve an already resolved deferred
                 return this;
             }
-            
-            fireCallbacks(this._onSuccessCallbacks, args);
-            fireCallbacks(this._onCompleteCallbacks, args);
 
-            this._completedWithArgs= args;
+            fireCallbacks(this._onSuccessCallbacks, arguments);
+            fireCallbacks(this._onCompleteCallbacks, arguments);
+
+            this._completedWithArgs= arguments;
 
             return this;
         }
         ,reject: function(){
-            var
-                args
-            ;
-
             if(this.isRejected()) {
                 // refuse to reject an already rejected deferred
                 return this;
             }
 
-            args= Array.prototype.slice.call(arguments);
+            fireCallbacks(this._onErrorCallbacks, arguments);
+            fireCallbacks(this._onCompleteCallbacks, arguments);
             
-            fireCallbacks(this._onErrorCallbacks, args);
-            fireCallbacks(this._onCompleteCallbacks, args);
-            
-            this._completedWithArgs= args;
+            this._completedWithArgs= arguments;
 
             return this;
         }
@@ -164,6 +154,7 @@
             
             return this;
         }
+        
         ,done: function(){
             if(this.isResolved()) {
                 fireCallbacks(arguments, this._completedWithArgs);
@@ -183,14 +174,32 @@
             return this;
         }
     });
-
+    
     Class.create({
         __name__: "broke.events.When"
         ,__init__: function(){
             this.deferreds= Array.prototype.slice.call(arguments);
         }
         ,then: function(onSuccessCallback, onErrorCallback){
-            // TODO
+
+            var
+                trackCompletion= function(){
+                    completedDeferredsLength+= 1;
+
+                    if(completedDeferredsLength == this.deferreds.length) {
+                        
+                    }
+                }
+                ,completedDeferredsLength= 0
+            ;
+
+            this.deferreds[0]
+
+            this.deferreds.each(function(){
+                this.always(trackCompletion);
+            });
+            
+            return this;
         }
     });
     
