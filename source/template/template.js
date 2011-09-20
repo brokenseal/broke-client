@@ -101,7 +101,7 @@
                 }
             });
             
-            return result.join('');
+            return broke.template.defaultFilters.escape(result.join(''));
         }
     });
     broke.template.Template.listRender= function(context, nodelist) {

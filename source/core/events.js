@@ -175,34 +175,6 @@
         }
     });
     
-    Class.create({
-        __name__: "broke.events.When"
-        ,__init__: function(){
-            this.deferreds= Array.prototype.slice.call(arguments);
-        }
-        ,then: function(onSuccessCallback, onErrorCallback){
-
-            var
-                trackCompletion= function(){
-                    completedDeferredsLength+= 1;
-
-                    if(completedDeferredsLength == this.deferreds.length) {
-                        
-                    }
-                }
-                ,completedDeferredsLength= 0
-            ;
-
-            this.deferreds[0]
-
-            this.deferreds.each(function(){
-                this.always(trackCompletion);
-            });
-            
-            return this;
-        }
-    });
-    
     // Request event handling
     broke.events.bindToRequest(function(e, request, extraArgs, responseCallback){
         var
