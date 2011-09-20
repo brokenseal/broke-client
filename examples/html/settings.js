@@ -1,74 +1,50 @@
-(function(_){
+(function(context, undefined){
 	var
-		utils= require('broke/core/utils')
-		,HOSTMAP = {
+		HOSTMAP = {
 			'development': [
-				'callegari'
-				,'broke'
-				,'localhost'
+				'localhost'
 			]
-			,'staging': [
-				'demo.brokenseal.it'
-			]
-			,'production': [
-	//			'demo.brokenseal.it'
-			]
+            ,test: [
+                ''
+            ]
+			,'staging': []
+			,'production': []
 		}
+        
 		,production = {
-			REQUIRE: {
-				DYNAMIC: true
-				,TIMEOUT: 3600
-				,PATHS: ['/media/broke']
-			}
-			,MIDDLEWARE_CLASSES: []
+			MIDDLEWARE_CLASSES: []
 			,DEBUG_PROPAGATE_EXCEPTIONS: true
-			,ADDRESS_BAR: {
-				hide: false
-			}
-			,LANGUAGE_CODE: 'it'
-			,BASE_URL: '/media/broke/broke'
-			,LOCALE_PATHS: [
-				'/media/broke/examples/html/locale'
-			]
-			,TEMPLATE_PATHS: [
-				'/media/broke/examples/html/templates'
-			]
+			,LANGUAGE_CODE: 'en'
 			,TEMPLATE_LOADERS: [
-				'broke.template.loaders.apps',
-				'broke.template.loaders.remote'
+				'broke.template.loaders.apps'
+				,'broke.template.loaders.remote'
 			]
 			,USE_I18N: true
 			,DEBUG: false
 			,GET_LATEST_BY: 'title'
 			,INSTALLED_APPS: [
-				'project'
+				'blog'
 			]
-			,ROOT_URLCONF: 'examples/html/urls'
+			,ROOT_URLCONF: 'blog.urls'
 		}
-		,development= utils.extend(utils.clone(production), {
-			BASE_URL: '/broke'
-			,LOCALE_PATHS: [
-				'/media/broke/examples/html/locale'
-			]
-			,TEMPLATE_PATHS: [
-				'/media/broke/examples/html/templates'
-			]
-			,ROOT_URLCONF: 'examples/html/urls'
-		})
-		,settings= {
-			development: development
-			,staging: production
-			,production: production
-		}
+        
+        ,development= production
+        ,test= production
 	;
+
+    blog.settings= {
+        development: development
+        ,staging: production
+        ,production: production
+    };
 	
-	utils.forEach(HOSTMAP, function(key){
-		utils.forEach(this, function(){
+	builtins.forEach(HOSTMAP, function(key){
+		builtins.forEach(this, function(){
 			
 			if(location && location.host == this) {
-				utils.extend(exports, settings[key]);
+				builtins.extend(exports, settings[key]);
 			}
 			
 		});
 	});
-})(exports);
+})(this);

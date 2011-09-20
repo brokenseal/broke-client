@@ -1,11 +1,13 @@
-(function(_){
+(function(context, undefined){
 	var
-		patterns= require('broke/conf/urls/defaults').patterns
-		,views= require('examples/html/views')
+		patterns= broke.core.urlResolvers.patterns
 	;
 	
-	_.urlpatterns= patterns('', 
-		[ '^/$', views.home ]
-		,[ '^entry/view/([0-9]+)/', views.entry_view ]
+	blog.urlPatterns= patterns('blog.views',
+		[ '^/$', 'list' ]
+        ,[ '^entry/view/([0-9]+)/', 'view' ]
+        ,[ '^entry/create/([0-9]+)/', 'create' ]
+        ,[ '^entry/update/([0-9]+)/', 'update' ]
+        ,[ '^entry/delete/([0-9]+)/', 'delete' ]
 	);
-})(exports);
+})(this);

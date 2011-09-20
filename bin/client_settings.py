@@ -13,7 +13,7 @@ CLOSURE_OPTIMIZATION= WHITESPACE_ONLY
 PYTHON_JS_PACKER= 'python/jspacker.py'
 
 # your packer choice
-PACKER= CLOSURE_COMPILER
+PACKER= PYTHON_JS_PACKER
 
 # settings
 BROKE_BASE_PATH= '../broke/'
@@ -21,6 +21,7 @@ OUTPUT_FILE= '../dist/broke-0.2.pack.js'
 
 FILE_PATHS= []
 
+# TODO: this needs to be changed onto something more dynamic
 for root, dirs, files in os.walk(BROKE_BASE_PATH):
     for file in files:
         FILE_PATHS.append(os.path.join(root, dirs, file))

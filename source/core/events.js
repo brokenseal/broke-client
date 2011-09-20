@@ -22,7 +22,7 @@
             isReady= true;
             events.trigger(window, 'broke.ready');
             
-            // make sure no one else fires this
+            // make sure no one else will fires this
             delete broke.events.ready;
         }
         ,onReady: function(fn) {
