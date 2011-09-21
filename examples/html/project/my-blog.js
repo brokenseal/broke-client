@@ -1,8 +1,8 @@
 (function(context, undefined){
-    context.exampleProject= {};
+    context.blog= {};
 
     $(function(){
-        broke.init('exampleProject.settings');
+        broke.init('blog.settings');
 
         broke.events.onReady(function(){
             // do stuff
