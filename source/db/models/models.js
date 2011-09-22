@@ -7,7 +7,7 @@
         ,contentTypeCache= {}
     ;
     
-    builtins.extend(broke.db.models, {
+    broke.extend(broke.db.models, {
         addContentType: function(appLabel, modelName, model){
             if(contentTypeCache[appLabel] === undefined) {
                 contentTypeCache[appLabel]= {};
@@ -263,7 +263,7 @@
         }
         ,update: function(fields, saveSettings, callback){
             
-            builtins.extend(this.fields, fields);
+            broke.extend(this.fields, fields);
             
             return this;
         }
@@ -312,7 +312,7 @@
             operation= saveSettings.operation ? 'delete' : 'save';
             
             // trigger model pre_save event
-            $window.trigger('broke.' + className + '.pre_' + operation, [object]);
+            broke.DOM.events.trigger(window, 'broke.' + className + '.pre_' + operation, [object]);
             
             if(operation == 'save' && object.pk) {
                 serverOperation= 'update';
@@ -348,9 +348,9 @@
                     ,args: engineOperationArgs
                     ,settings: saveSettings
                 }).execute(function(data, status, xhr, error){
-                    
-                    $window.trigger('broke.' + className + '.post_' + engineOperation, [object]);
-                    
+
+                    broke.DOM.events.trigger(window, 'broke.' + className + '.post_' + engineOperation, [object]);
+
                     if(callback) {
                         callback(data);
                     }

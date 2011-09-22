@@ -68,7 +68,7 @@
                 }
             */
             
-            builtins.extend(this, kwargs);
+            broke.extend(this, kwargs);
         }
         ,save: function(settings){
             var
@@ -116,7 +116,7 @@
                 }
             */
             
-            builtins.extend(this, kwargs);
+            broke.extend(this, kwargs);
         }
         ,save: function(settings){
             var

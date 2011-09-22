@@ -1,7 +1,6 @@
 ;(function(__global__, undefined){
     var
         querySelectorCache= {}
-        ,settings= broke.conf.settings
     ;
     
     broke.extend(broke.DOM, {
@@ -10,14 +9,14 @@
                 queryResult
             ;
 
-            if(settings.ADAPTOR_CACHE_ENABLED && querySelectorCache[query]) {
+            if(broke.conf.settings.ADAPTOR_CACHE_ENABLED && querySelectorCache[query]) {
                 return querySelectorCache[query];
             }
             
             context= context || document;
             queryResult= [].concat(jQuery(query, context));
 
-            if(settings.ADAPTOR_CACHE_ENABLED) {
+            if(broke.conf.settings.ADAPTOR_CACHE_ENABLED) {
                 querySelectorCache[query]= queryResult;
             }
 
@@ -30,27 +29,27 @@
         }
         ,val: function(object, value){
             var
-                result= jQuery.fn.val(object, value)
+                result= jQuery(object).val(value)
             ;
             
             return value ? value : result;
         }
-        ,attr: function(object, attributeName, value){
-            return jQuery.fn.attr(object, attributeName, value);
+        ,attr: function(attributeName, value){
+            return jQuery(object).attr(object, attributeName, value);
         }
         ,html: function(element, htmlString){
-            jQuery.fn.html(element, htmlString);
+            jQuery(element).html(htmlString);
             
             return element;
         }
         ,manipulation: {
             append: function(elementToAppend, parentElement){
-                jQuery.fn.append(parentElement, elementToAppend);
+                jQuery(parentElement).append(elementToAppend);
 
                 return elementToAppend;
             }
             ,clone: function(object){
-                return jQuery.fn.clone(object, false);
+                return jQuery(object).clone(false)[0];
             }
             ,create: function(elementName, properties){
                 return jQuery('<' + elementName + ' />', properties);
@@ -75,17 +74,17 @@
         // e.g. onClick -> click, onSubmit -> submit
         ,events: {
             addListener: function(object, eventName, callback){
-                jQuery.fn.bind(eventName, callback);
+                jQuery(object).bind(eventName, callback);
                 
                 return object;
             }
             ,removeListener: function(object, eventName, callback){
-                jQuery.fn.unbind(object, eventName, callback);
+                jQuery(object).unbind(eventName, callback);
 
                 return object;
             }
-            ,trigger: function(object, eventName){
-                jQuery.fn.trigger(object, eventName);
+            ,trigger: function(object, eventName, args){
+                jQuery(object).trigger(eventName, args);
 
                 return object;
             }

@@ -4,6 +4,7 @@
         ,requestEventName= 'broke.request'
         ,responseEventName= 'broke.response'
         ,events= broke.DOM.events
+        ,settings= broke.conf.settings
 
         // utility functions
         ,fireCallbacks= function(callbacks, args){
@@ -19,8 +20,8 @@
         }
         // used for internal purpose only
         ,ready: function(){
-            isReady= true;
             events.trigger(window, 'broke.ready');
+            isReady= true;
             
             // make sure no one else will fires this
             delete broke.events.ready;
@@ -76,11 +77,10 @@
                 req= args;
             }
 
-            events.trigger(window, requestEventName, fn);
-            $window.trigger(requestEventName, [req, extraArgs]);
+            events.trigger(window, requestEventName, [req, extraArgs]);
         }
         ,response: function(){
-            $window.trigger(responseEventName, arguments);
+            events.trigger(window, responseEventName, arguments);
         }
 
         // some class declarations
@@ -193,7 +193,7 @@
         extraArgs= extraArgs || [];
 
         request= broke.extend({
-            completeUrl: window.location.href,
+            completeUrl: location.href,
             method: 'GET',
             fromReload: false,
             statusCode: 200,
@@ -203,7 +203,7 @@
             REQUEST: {}
         }, request);
 
-        if(!request.url) {
+        if(request.url === undefined) {
             return;
         }
 
@@ -214,7 +214,11 @@
             queryString= parseQueryString(partialUrl[1]);
 
             request.GET= queryString;
-        } else if('event' in request && request.event.target.tagName.toLowerCase() === "form"){
+        } else if(request.hasOwnProperty('event')
+                    && request.event.target
+                    && request.event.target.tagName
+                    && request.event.target.tagName.toLowerCase() === "form"){
+            
             builtins.forEach(broke.DOM.q('inputy,select,textarea', request.event.target), function(){
                 queryString[input.attr('name')]= broke.DOM.val(this);
             });
@@ -225,9 +229,9 @@
 
         // set META
         request.META= {
-            HTTP_REFERER: window.location.href.split('#')[1] || ''
+            HTTP_REFERER: location.hash.split('#')[1] || ''
         };
-
+        
         // middleware fetching
         builtins.forEach(broke.conf.settings.MIDDLEWARE_CLASSES, function(){
             var
@@ -245,7 +249,7 @@
         } catch(error) {
             if(error.name == "NotFound") {
                 //builtins.getattr(broke.conf.settings.HANDLER_404)(request);
-                broke.response(response);
+                broke.events.response(response);
                 return;
 
             } else {
@@ -267,7 +271,7 @@
             // create the callback function for the response to be taken
             callback= function(response){
                 response= broke.extend(request, response);
-                broke.response(response, extraArgs, responseCallback);
+                broke.events.response(response, extraArgs, responseCallback);
             };
 
             // put the callback as the last argument

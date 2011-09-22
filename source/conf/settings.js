@@ -32,7 +32,7 @@
                 ,BASE_URL: '/api/'
             }
         }
-        ,DATABASE_ROUTERS: ['mmds.routers.DefaultRouter']
+        ,DATABASE_ROUTERS: ['broke.db.routers.DefaultRouter']
 
         ,DISALLOWED_USER_AGENTS: []
 
@@ -54,7 +54,7 @@
         // as for the 'elements' method please refer to the documentation under the
         // 'events' topic
         // choices are: elements, hashchange
-        ,EVENT_TRIGGERING_METHOD: 'elements'
+        ,EVENT_TRIGGERING_METHOD: 'hashchange'
 
         ,FILE_SYSTEM: {
             SIZE: 5 * 1024 // 5 Kb default file system size

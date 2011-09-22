@@ -9,7 +9,6 @@
             
             return response.context;
         }
-        ,renderToString= broke.template.loader.renderToString
     ;
     
     broke.shortcuts= {
@@ -31,7 +30,7 @@
                 var
                     allowedMethods= ['after', 'before', 'append', 'prepend', 'wrap']
                     ,context= applyContextProcessors(response)
-                    ,renderedTemplate= renderToString(response.template, context)
+                    ,renderedTemplate= broke.template.loader.renderToString(response.template, context)
                     ,newElement= broke.DOM.m.createFromString(renderedTemplate)
                 ;
 
@@ -69,7 +68,7 @@
                  */
                 var
                     context= applyContextProcessors(response)
-                    ,renderedTemplate= renderToString(response.template, context)
+                    ,renderedTemplate= broke.template.loader.renderToString(response.template, context)
                     ,newElement= broke.DOM.m.createFromString(renderedTemplate)
                 ;
                 

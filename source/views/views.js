@@ -1,4 +1,4 @@
-;(function(undefined){
+;(function(context, undefined){
 	broke.views= {
         defaults: {
             setLanguage: function(request){
@@ -28,7 +28,7 @@
                         // TODO
                         //request.cookie= [settings.LANGUAGE_COOKIE_NAME, langCode];
                     } else {
-                        window.location.href= window.location.href.split('#')[0].split('?')[0] + '?language=' + langCode;
+                        location.href= location.href.split('#')[0].split('?')[0] + '?language=' + langCode;
                     }
                 }
 
@@ -41,4 +41,4 @@
             }
         }
     };
-})();
+})(this);

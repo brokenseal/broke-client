@@ -31,7 +31,7 @@
             };
             this._settings= kwargs.settings || {};
             
-            builtins.extend(this.args, kwargs.args);
+            broke.extend(this.args, kwargs.args);
             
             if(this.db) {
                 this.dbForRead= this.db;
@@ -45,7 +45,7 @@
             this.engineForWrite= builtins.getattr(settings.DATABASES[this.dbForWrite].ENGINE);
         }
         ,settings: function(settings){
-            builtins.extend(this._settings, settings);
+            broke.extend(this._settings, settings);
 
             return this;
         }

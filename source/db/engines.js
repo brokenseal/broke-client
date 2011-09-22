@@ -252,9 +252,6 @@
     LocalEngine= BaseEngine.create({
         __name__: "broke.db.engines.LocalEngine"
         ,storage: broke.storages.JSONSchema
-        ,initTableForModel: function(model, objects){
-            return this.storage.initTableForModel(model, objects);
-        }
         ,select: function(callback){
             var
                 data= this.storage.getTable(this.model.getTableName())
@@ -329,6 +326,9 @@
             return this;
         }
     });
+    LocalEngine.initTableForModel= function(model, objects){
+        return this.prototype.storage.initTableForModel(model, objects);
+    };
     
     RemoteEngine= BaseEngine.create({
         __name__: "broke.db.engines.RemoteEngine"
@@ -378,7 +378,7 @@
             // TODO
         }
         ,_ajaxOperation: function(ajaxSettings, callback){
-            ajaxSettings= builtins.extend({
+            ajaxSettings= broke.extend({
                 async: this.settings.async
                 ,cache: this.settings.cache === undefined ? false : this.settings.cache
                 ,url: this.model.getBaseRemoteUrl()

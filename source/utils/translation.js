@@ -25,7 +25,7 @@
             }
             ,setLanguage: function(){
                 // 1. look in the url
-                var queryString= broke.urlResolvers.parseQueryString(window.location.href.split('?')[1]),
+                var queryString= broke.urlResolvers.parseQueryString(location.href.split('?')[1]),
                     cookie= $.cookie(settings.LANGUAGE_COOKIE_NAME),
                     langCodeFromCookie;
 
@@ -36,7 +36,7 @@
                     // set cookie language
                     $.cookie(settings.LANGUAGE_COOKIE_NAME, queryString.language, {
                         expires: 30,
-                        domain: window.location.host,
+                        domain: location.host,
                         path: '/'
                     });
                 } else {

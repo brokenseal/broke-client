@@ -112,5 +112,5 @@
     // TODO: DateField
 
     // make all the fields available as broke.db.models attributes
-    builtins.extend(broke.db.models, broke.db.fields);
+    broke.extend(broke.db.models, broke.db.fields);
 })();

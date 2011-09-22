@@ -47,18 +47,21 @@
                 if(JSONSchemaStorage[tableName] === undefined) {
                     JSONSchemaStorage[tableName]= objects || [];
                 }
+
+                // init pk index for this table
+                broke.storages.JSONSchema.index[tableName]= {};
                 
                 JSONSchemaModelStorageMapping[tableName]= model;
-                
+
                 return JSONSchemaStorage[tableName];
             }
             ,getTable: function(tableName){
-                return broke.storages.JSONSchema.index[tableName];
+                return JSONSchemaStorage[tableName];
             }
             ,get: function(pk, tableName){
                 // TODO: improve
                 broke.storages.JSONSchema.index[tableName]= broke.storages.JSONSchema.index[tableName] || {};
-
+                
                 return broke.storages.JSONSchema.index[tableName][pk];
             }
             ,set: function(tableName, kwargs) {

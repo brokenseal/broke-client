@@ -1,5 +1,3 @@
-import os
-
 # google closure compiler
 CLOSURE_COMPILER= 'java/closure-compiler.jar'
 
@@ -13,18 +11,63 @@ CLOSURE_OPTIMIZATION= WHITESPACE_ONLY
 PYTHON_JS_PACKER= 'python/jspacker.py'
 
 # your packer choice
-PACKER= PYTHON_JS_PACKER
+PACKER= CLOSURE_COMPILER
 
 # settings
-BROKE_BASE_PATH= '../broke/'
+BROKE_BASE_PATH= '../source/'
 OUTPUT_FILE= '../dist/broke-0.2.pack.js'
 
-FILE_PATHS= []
+FILE_PATHS= (
+	'broke.js',
 
-# TODO: this needs to be changed onto something more dynamic
-for root, dirs, files in os.walk(BROKE_BASE_PATH):
-    for file in files:
-        FILE_PATHS.append(os.path.join(root, dirs, file))
+	# adaptors
+	'adaptors/jquery-adaptor.js',
+
+	# conf
+	'conf/settings.js',
+	'conf/urls.js',
+
+	#core
+	'core/context_processors.js',
+	'core/events.js',
+	'core/exceptions.js',
+	'core/pubsub.js',
+	'core/urlresolvers.js',
+
+	# db
+	'db/routers.js',
+	'db/storages.js',
+	'db/engines.js',
+	'db/models/fields.js',
+	'db/models/query.js',
+	'db/models/manager.js',
+	'db/models/models.js',
+
+	# forms
+	'forms/forms.js',
+	'forms/models.js',
+    
+	# file system
+	'fs/fs.js',
+
+	# template
+	'template/template.js',
+	'template/defaultfilters.js',
+	'template/defaulttags.js',
+	'template/loader.js',
+	'template/loaders.js',
+	'template/nodes.js',
+	'template/parser.js',
+
+    # utils
+    'utils/functional.js',
+    'utils/translation.js',
+
+    # views
+    'views/views.js',
+
+	'shortcuts.js',
+)
 
 #DEPENDENCIES_BASE_PATH= '../dependencies/'
 #DEPENDENCIES_PATHS= (

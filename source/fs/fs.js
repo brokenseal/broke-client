@@ -169,7 +169,7 @@
         ,FileSystem: null
     };
 
-    Class.extend({
+    Class.create({
         __name__: "broke.fs.File"
         ,__init__: function(path, flags, callback){
             var
@@ -384,7 +384,7 @@
         ,readLines: function(size){}
     });
 
-    Class.extend({
+    Class.create({
         __name__: "broke.fs.Directory"
         ,__init__: function(directoryEntry){
             this.directoryEntry= directoryEntry;
@@ -392,5 +392,3 @@
         ,read: function(){}
     });
 })(this);
-
-// vim: set ts=4 sw=4 et:
