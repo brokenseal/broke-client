@@ -1,4 +1,4 @@
-(function(){
+(function(context, undefined){
 	var Template= broke.template.Template;
 	
 	broke.extend(broke.template, {
@@ -21,7 +21,7 @@
 				};
 				
 				if(template) {
-					return new Template(template).render(context);
+					return Template(template).render(context);
 				}
 				
 				// no template found
@@ -29,4 +29,4 @@
 			}
 		}
 	});
-})();
+})(this);

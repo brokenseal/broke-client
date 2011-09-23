@@ -2,19 +2,19 @@
     var
         genericEntryView= [
             '<div class="entry">'
-                ,'{{ object }}'
+                ,'{{ entry.fields.title }}'
             ,'</div>'
         ].join('')
     ;
 
-    blog.templates= {
+    todo.templates= {
         list: [
             '<div class="entry-list">'
                 ,'{% for entry in entry_list %}'
                     ,genericEntryView
                 ,'{% endfor %}'
             ,'</div>'
-        ]
+        ].join('')
         ,view: genericEntryView
         ,create: ''
         ,update: ''

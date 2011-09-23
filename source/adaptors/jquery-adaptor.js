@@ -56,10 +56,10 @@
             }
             ,createFromString: function(htmlString){
                 var
-                    html= $(htmlString)
+                    html= jQuery(htmlString)
                 ;
                 
-                return html.length ? [].concat(html) : html[0];
+                return html.length > 1 ? html.get() : html.get(0);
             }
             ,filter: function(elements, filterExpression){
                 return [].concat($(elements).filter(filterExpression));

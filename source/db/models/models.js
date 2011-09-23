@@ -91,6 +91,7 @@
         ,__init__: function(__class__){
             var
                 defaultManager
+                ,currentModel= this
             ;
             
             __class__.objects= Manager(__class__);
@@ -101,13 +102,20 @@
                 if(this instanceof Manager && defaultManager === undefined) {
                     defaultManager= this;
                 }
+
+//                if(this._field) {
+//                    currentModel._meta.fields[key]= this;
+//                }
                 
                 if(this.contributeToClass) {
                     this.contributeToClass(__class__, key);
                 }
             });
-            
+
             __class__._defaultManager= defaultManager || __class__.objects;
+        }
+        ,_meta: {
+            fields: {}
         }
         // exceptions
         ,DoesNotExist: broke.exceptions.DoesNotExist
@@ -172,6 +180,27 @@
                 ,update: baseUrl + this.pk + '/'
                 ,'delete': baseUrl + this.pk + '/'
             };
+            
+            // attach the current instance to all the fields of this model's instance
+            builtins.forEach(this.__class__.prototype, function(key){
+                var
+                    field
+                ;
+
+                if(this instanceof broke.db.fields.Field) {
+
+                    field= this;
+                    
+                    currentInstance[key]= function(value){
+                        if(value !== undefined) {
+                            return field.set(currentInstance, value);
+                        } else {
+                            return field.get(currentInstance);
+                        }
+                    }
+                    
+                }
+            });
         }
         ,fields: {}
         ,elements: function(kwargs){
@@ -370,5 +399,9 @@
             settings.operation= 'delete';
             return this.save(settings, callback);
         }
+    });
+    
+    builtins.forEach(broke.db.fields, function(key){
+        broke.db.models[key]= this;
     });
 })();

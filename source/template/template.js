@@ -5,7 +5,7 @@
  * 
  */
 
-(function(){
+(function(context, undefined){
     broke.template= {
         // constants
         TOKEN_TEXT: 0,
@@ -66,24 +66,24 @@
             tokens= builtins.map(bits, function(){
                 var tagToken;
                 
-                if(builtins.startsWith(this, template.BLOCK_TAG_START)) {
-                    tagToken= this.slice(template.BLOCK_TAG_START.length, -template.BLOCK_TAG_END.length);
-                    return new template.Token(template.TOKEN_BLOCK, tagToken);
+                if(builtins.startsWith(this, broke.template.BLOCK_TAG_START)) {
+                    tagToken= this.slice(broke.template.BLOCK_TAG_START.length, -broke.template.BLOCK_TAG_END.length);
+                    return broke.template.Token(broke.template.TOKEN_BLOCK, tagToken);
                 }
-                else if(builtins.startsWith(this, template.VARIABLE_TAG_START)) {
-                    return new template.Token(template.TOKEN_VAR, this.slice(template.VARIABLE_TAG_START.length, -template.VARIABLE_TAG_END.length));
+                else if(builtins.startsWith(this, broke.template.VARIABLE_TAG_START)) {
+                    return broke.template.Token(broke.template.TOKEN_VAR, this.slice(broke.template.VARIABLE_TAG_START.length, -broke.template.VARIABLE_TAG_END.length));
                 } else {
-                    return new template.Token(template.TOKEN_TEXT, this);
+                    return broke.template.Token(broke.template.TOKEN_TEXT, this);
                 }
             });
             
-            return (new template.Parser(tokens)).parse();
+            return (broke.template.Parser(tokens)).parse();
         },
         _formRegx: function(){
             var ret = '';
             
-            ret += '(' + builtins.rescape(template.BLOCK_TAG_START) + '.*?' + builtins.rescape(template.BLOCK_TAG_END) + 
-            '|' + builtins.rescape(template.VARIABLE_TAG_START) + '.*?' + builtins.rescape(template.VARIABLE_TAG_END) + '|$' + ')';
+            ret += '(' + builtins.rescape(broke.template.BLOCK_TAG_START) + '.*?' + builtins.rescape(broke.template.BLOCK_TAG_END) +
+            '|' + builtins.rescape(broke.template.VARIABLE_TAG_START) + '.*?' + builtins.rescape(broke.template.VARIABLE_TAG_END) + '|$' + ')';
             
             return ret;
         },        
@@ -91,8 +91,8 @@
             var result= [];
             
             builtins.forEach(this._nodelist, function(){
-                if(typeof(this) == 'object') {
-                    typeof(this.render) == 'function' ?
+                if(builtins.typeOf(this) == 'object') {
+                    builtins.typeOf(this.render) == 'function' ?
                         (result.push(this.render(context)))
                         :
                         (result.push(this.toString()));
@@ -104,6 +104,7 @@
             return broke.template.defaultFilters.escape(result.join(''));
         }
     });
+
     broke.template.Template.listRender= function(context, nodelist) {
         var result= [];
         
@@ -120,7 +121,7 @@
         ,__init__: function(type, content){
             this.type= type;
             
-            if(this.type !== template.TOKEN_TEXT) {
+            if(this.type !== broke.template.TOKEN_TEXT) {
                 // remove trailing and leading white spaces
                 content= content.replace(/^\s+|\s+$/g, '');
             }
@@ -129,4 +130,4 @@
         },
         tsplit: function(){}
     });
-})();
+})(this);

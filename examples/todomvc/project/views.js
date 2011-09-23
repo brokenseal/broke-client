@@ -6,15 +6,15 @@
     todo.views= {
         list: function(request, callback){
 
-            todo.models.Task.objects.all(function(entryList){
+            todo.models.Task.objects.all(function(taskList){
                 
                 create({
-                    htmlNode: '#tasks .list'
+                    htmlNode: '#content'
                     ,emptyHtmlNodeFirst: true
                     ,template: 'list'
-                    ,object: entryList
+                    ,object: taskList
                     ,context: {
-                        entry_list: entryList
+                        taskList: taskList
                     }
                     ,callback: function(){
                         alert(11);
@@ -24,16 +24,16 @@
             });
             
         }
-        ,view: function(request, entryId, callback){
+        ,view: function(request, taskId, callback){
             console.log("VIEW");
         }
         ,create: function(request){
             console.log("CREATE");
         }
-        ,update: function(request, entryId, callback){
+        ,update: function(request, taskId, callback){
             console.log("UPDATE");
         }
-        ,'delete': function(request, entryId, callback){
+        ,'delete': function(request, taskId, callback){
             console.log("DELETE");
         }
     };

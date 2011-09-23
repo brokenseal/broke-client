@@ -1,15 +1,14 @@
 (function(context, undefined){
     var
         models= broke.db.models
-        ,fields= broke.db.fields
     ;
 
     todo.models= {};
 
     models.Model.create({
-        __name__: "todo.models.Entry"
-        ,title: fields.CharField({ max_length: 200 })
-        ,body: fields.TextField()
+        __name__: "todo.models.Task"
+        ,title: models.CharField({ max_length: 200 })
+        ,body: models.TextField()
         // TODO
         //,pub_date: fields.DateField()
     });

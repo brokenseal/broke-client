@@ -1,6 +1,8 @@
-(function(){
-	var templatesCache= {},
-		settings= broke.conf.settings;
+(function(context, undefined){
+	var
+        templatesCache= {}
+		,settings= broke.conf.settings
+    ;
 	
 	broke.extend(broke.template, {
 		loaders: {
@@ -26,8 +28,8 @@
 					// no template found
 					return template;
 				}
-			},
-			remote: {
+			}
+			,remote: {
 				loadTemplate: function(templateName){
 					var template,
 						url,
@@ -64,4 +66,4 @@
 			}
 		}
 	});
-})();
+})(this);

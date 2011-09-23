@@ -35,7 +35,7 @@
                 fieldInstance= this
                 ,getRelatedModels= function(){
                     return cls.objects.filter({
-                        pk: this.fields[fieldName]
+                        pk: this.instance.fields[fieldName]
                     });
                 }
             ;
@@ -49,9 +49,9 @@
             // is it the best way to handle this? not sure...
             getRelatedModels.model= cls;
         }
-        ,__call__: function(instance, callableObject, callback){
+        ,get: function(instance, callback){
             var
-                pk= instance.fields[callableObject.fieldName] || instance.fields[callableObject.fieldName + '_id']
+                pk= instance.fields[this.fieldName] || instance.fields[this.fieldName + '_id']
             ;
             
             this.relatedModel.objects.get({
@@ -62,15 +62,15 @@
     
     PositiveIntegerField= Field.create({
         __name__: "broke.db.fields.PositiveIntegerField"
-        ,__call__: function(instance, callableObject, value){
+        ,get: function(instance, value){
             if(value !== undefined) {
                 if(value < 0 || parseInt(value) === NaN) {
                     throw new Error("A PositiveIntegerField only accepts a positive integer field.");
                 }
                 
-                instance.fields[callableObject.fieldName]= value;
+                instance.fields[this.fieldName]= value;
             } else {
-                value= instance.fields[callableObject.fieldName];
+                value= instance.fields[this.fieldName];
             }
             
             return value;
@@ -79,12 +79,11 @@
     
     TextField= Field.create({
         __name__: "broke.db.fields.TextField"
-        ,__call__: function(instance, callableObject, value){
-            if(value !== undefined) {
-                instance.fields[callableObject.fieldName]= value;
-            } else {
-                value= instance.fields[callableObject.fieldName];
-            }
+        ,get: function(instance, value){
+            return instance.fields[this.fieldName];
+        }
+        ,set: function(instance, value){
+            instance.fields[this.fieldName]= value;
             
             return value;
         }
@@ -95,15 +94,14 @@
         ,__init__: function(kwargs){
             this.max_length= kwargs.max_length;
         }
-        ,__call__: function(instance, callableObject, value){
-            if(value !== undefined) {
-                if(value.length > this.max_length) {
-                    throw new Error("Value exceeds set max length");
-                }
-                instance.fields[callableObject.fieldName]= value;
-            } else {
-                value= instance.fields[callableObject.fieldName];
+        ,get: function(instance, value){
+            return instance.fields[this.fieldName];
+        }
+        ,set: function(instance, value){
+            if(value.length > this.max_length) {
+                throw new Error("Value exceeds set max length");
             }
+            instance.fields[this.fieldName]= value;
             
             return value;
         }

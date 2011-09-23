@@ -38,7 +38,15 @@
             return this;
         }
         ,render: function(context){
-            this.content= builtins.getattr(this.varstr, context, "");
+            var
+                content= builtins.getattr(this.varstr, context, "")
+            ;
+            
+            if(builtins.typeOf(content) == "function") {
+                content= content();
+            }
+            
+            this.content= content;
             
             if(this.filters) {
                 this.applyFilters();

@@ -1,7 +1,8 @@
-;(function(undefined){
+;(function(context, undefined){
     var
-        applyContextProcessors= function(response){
-            builtins.forEach(broke.conf.settings.CONTEXT_PROCESSORS, function(){
+        settings= broke.conf.settings
+        ,applyContextProcessors= function(response){
+            builtins.forEach(settings.CONTEXT_PROCESSORS, function(){
                 var contextProcessor= builtins.getattr(this);
                 
                 broke.extend(response.context, contextProcessor(response));
@@ -21,6 +22,7 @@
                  *     htmlNode: node or string to search the node,
                  *         to which append the newly created node.
                  *         it defaults to 'body'
+                 *     emptyHtmlNodeFirst: whether or not to empty the htmlNode
                  *     additionalProperties: additional properties to append to the
                  *         newly created htmlNode
                  *     callback: a function that gets applied to the newly created htmlNode
@@ -36,18 +38,27 @@
 
                 // default arguments
                 response= broke.extend({
-                    method: 'append',
-                    htmlNode: 'body'
+                    method: 'append'
+                    ,htmlNode: 'body'
+                    ,emptyHtmlNodeFirst: false
                 }, response);
                 
                 if(!builtins.has(allowedMethods, response.method)) {
                     throw broke.exceptions.NotImplementedError(builtins.interpolate(gettext.gettext("The selected template's method (%s) is not implemented. Options are: after, before, append, prepend, wrap"), response.method));
+                }
+
+                if(response.emptyHtmlNodeFirst) {
+                    broke.DOM.html(response.htmlNode, '');
                 }
                 
                 // append support only, for now
                 broke.DOM.m.append(newElement, response.htmlNode);
                 
                 response.element= newElement;
+
+                if(settings.EVENT_TRIGGERING_METHOD == 'hashchange') {
+                    broke.bindEvents(newElement);
+                }
                 
                 return response;
             }
@@ -76,6 +87,10 @@
                 broke.DOM.m.replace(response.htmlNode, newElement);
                 
                 response.element= newElement;
+
+                if(settings.EVENT_TRIGGERING_METHOD == 'hashchange') {
+                    broke.bindEvents(newElement);
+                }
                 
                 return response;
             }
@@ -153,9 +168,9 @@
                 });
                 
                 response.element= response.htmlNode;
-                
+
                 return true;
             }
         }
     };
-})();
+})(this);

@@ -143,7 +143,7 @@
         // WARNING: will only work if 'eventTriggeringMethod' is set to 'elements'
         ,URL_CHANGING_ELEMENTS: {
             'a': {
-                events: ['click'],        // events
+                events: ['click'],      // events
                 urlAttribute: 'href'    // attribute holding the url
             }
             ,'form': {
@@ -152,7 +152,7 @@
                 preventDefault: true
             }
         }
-        ,USE_AJAX: true                    // would you like to use ajax?
+        ,USE_AJAX: true                 // would you like to use ajax?
                                         // if false, it will create a form and
                                         // send your data through that form
                                         // WARNING: not ready yet!

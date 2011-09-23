@@ -125,12 +125,12 @@ var broke= {};
                     app= this
                 ;
                 
-                if(app.constructor == String) {
+                if(builtins.typeOf(app) == "string") {
                     app= builtins.getattr(this);
                 }
                 
                 if(!app) {
-                    return;
+                    return null;
                 }
                 
                 // init app's models
@@ -155,6 +155,8 @@ var broke= {};
                     
                     broke.db.models.addContentType(this.appLabel, this.__name__.toLowerCase(), this);
                 });
+
+                return app;
             });
             
             return settings;
@@ -170,7 +172,7 @@ var broke= {};
                                         // equivalent of Django's DJANGO_SETTINGS_MODULE
         
         /****************************** INIT *********************************/
-        ,init: function(settingsObject){
+        ,init: function(settingsObject, callback){
             var
                 settings= broke.conf.settings
                 ,currentUrl= location.hash.split('#')[1] || ''
@@ -211,6 +213,10 @@ var broke= {};
 
             // bind events
             bindEvents();
+
+            if(builtins.typeOf(callback) == "function") {
+                callback();
+            }
             
             // cache init
             //broke.core.cache.cache= broke.core.cache.getCache(settings.CACHE_BACKEND);
