@@ -7,8 +7,6 @@
         }
         ,API_BASE_URL: '/api/'
 
-        ,ADAPTOR_CACHE_ENABLED: true
-
         ,BASE_URL: '/broke'
 
         // cache system

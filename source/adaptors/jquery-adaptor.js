@@ -9,17 +9,9 @@
                 queryResult
             ;
 
-            if(broke.conf.settings.ADAPTOR_CACHE_ENABLED && querySelectorCache[query]) {
-                return querySelectorCache[query];
-            }
-            
             context= context || document;
-            queryResult= [].concat(jQuery(query, context));
-
-            if(broke.conf.settings.ADAPTOR_CACHE_ENABLED) {
-                querySelectorCache[query]= queryResult;
-            }
-
+            queryResult= jQuery(query, jQuery(context));
+            
             return queryResult;
         }
         ,clearCache: function(){
@@ -28,17 +20,36 @@
             return;
         }
         ,val: function(object, value){
-            var
-                result= jQuery(object).val(value)
-            ;
-            
-            return value ? value : result;
+
+            if(value !== undefined) {
+                jQuery(object).val(value);
+
+                return object;
+            }
+
+            return jQuery(object).val();
         }
-        ,attr: function(attributeName, value){
-            return jQuery(object).attr(object, attributeName, value);
+        ,attr: function(object, attributeName, value){
+            if(value !== undefined) {
+                jQuery(object).attr(attributeName, value);
+
+                return value;
+            }
+            
+            return jQuery(object).attr(attributeName);
+        }
+        ,removeAttr: function(object, attributeName){
+            jQuery(object).removeAttr(attributeName);
+            
+            return object;
         }
         ,html: function(element, htmlString){
             jQuery(element).html(htmlString);
+            
+            return element;
+        }
+        ,text: function(element, text){
+            jQuery(element).text(text);
             
             return element;
         }
@@ -62,10 +73,10 @@
                 return html.length > 1 ? html.get() : html.get(0);
             }
             ,filter: function(elements, filterExpression){
-                return [].concat($(elements).filter(filterExpression));
+                return jQuery(elements).filter(filterExpression);
             }
             ,replace: function(firstElement, secondElement){
-                $(firstElement).replaceWith(secondElement);
+                jQuery(firstElement).replaceWith(secondElement);
 
                 return firstElement;
             }
@@ -74,8 +85,17 @@
         // e.g. onClick -> click, onSubmit -> submit
         ,events: {
             addListener: function(object, eventName, callback){
-                jQuery(object).bind(eventName, callback);
                 
+                if(builtins.isArray(object)) {
+
+                    builtins.forEach(object, function(){
+                        jQuery(this).bind(eventName, callback);
+                    });
+                    
+                } else {
+                    jQuery(object).bind(eventName, callback);
+                }
+
                 return object;
             }
             ,removeListener: function(object, eventName, callback){

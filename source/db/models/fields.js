@@ -1,15 +1,23 @@
-(function(){
+(function(context, undefined){
     var
         Field
         ,ForeignKey
         ,CharField
         ,TextField
+        ,BooleanField
+        ,PositiveIntegerField
         ,getter= function(){}
         ,setter= function(){}
     ;
     
     Field= Class.create({
         __name__: "broke.db.fields.Field"
+        ,__init__: function(kwargs){
+            this['default']= kwargs['default'];
+        }
+        ,get: function(instance){
+            return instance.fields[this.fieldName] || this['default'];
+        }
         ,attachCurrentModelInstance: true
         ,contributeToClass: function(cls, fieldName){
             //this.setAttributesFromName(fieldName);
@@ -21,6 +29,8 @@
     ForeignKey= Field.create({
         __name__: "broke.db.fields.ForeignKey"
         ,__init__: function(kwargs){
+            this._super(kwargs);
+            
             this.relatedModel= kwargs.model;
             if(kwargs.relatedName) {
                 this.relatedName= kwargs.relatedName;
@@ -62,26 +72,32 @@
     
     PositiveIntegerField= Field.create({
         __name__: "broke.db.fields.PositiveIntegerField"
-        ,get: function(instance, value){
-            if(value !== undefined) {
-                if(value < 0 || parseInt(value) === NaN) {
-                    throw new Error("A PositiveIntegerField only accepts a positive integer field.");
-                }
-                
-                instance.fields[this.fieldName]= value;
-            } else {
-                value= instance.fields[this.fieldName];
+        ,set: function(instance, value){
+            if(value < 0 || parseInt(value) === NaN) {
+                throw new Error("A PositiveIntegerField only accepts a positive integer field.");
             }
+
+            instance.fields[this.fieldName]= value;
             
             return value;
         }
     });
-    
+
+    BooleanField= Field.create({
+        __name__: "broke.db.fields.BooleanField"
+        ,set: function(instance, value){
+            if(builtins.typeOf(value) != "boolean") {
+                throw new Error("A BooleanField only accepts a boolean values.");
+            }
+            
+            instance.fields[this.fieldName]= value;
+
+            return value;
+        }
+    });
+
     TextField= Field.create({
         __name__: "broke.db.fields.TextField"
-        ,get: function(instance, value){
-            return instance.fields[this.fieldName];
-        }
         ,set: function(instance, value){
             instance.fields[this.fieldName]= value;
             
@@ -92,10 +108,9 @@
     CharField= TextField.create({
         __name__: "broke.db.fields.CharField"
         ,__init__: function(kwargs){
+            this._super(kwargs);
+            
             this.max_length= kwargs.max_length;
-        }
-        ,get: function(instance, value){
-            return instance.fields[this.fieldName];
         }
         ,set: function(instance, value){
             if(value.length > this.max_length) {
@@ -111,4 +126,4 @@
 
     // make all the fields available as broke.db.models attributes
     broke.extend(broke.db.models, broke.db.fields);
-})();
+})(this);

@@ -96,7 +96,10 @@
             
             __class__.objects= Manager(__class__);
             __class__.appLabel= __class__.__fullname__.split('.').slice(-3, -2)[0];
-            
+
+            currentModel._meta.appLabel= __class__.appLabel;
+            currentModel._meta.modelName= __class__.__name__.toLowerCase();
+
             // init fields which contribute to the class
             builtins.forEach(__class__.prototype, function(key){
                 if(this instanceof Manager && defaultManager === undefined) {
@@ -219,11 +222,12 @@
                 context= kwargs.context || document;
                 clearCache= kwargs.clearCache;
                 filterExpression= kwargs.filterExpression || '';
-            } else {
-                filterExpression= '[data-pk="' + this.fields.pk + '"]'+
+            }
+            
+            filterExpression= filterExpression || '[data-pk="' + this.fields.pk + '"]'+
                     '[data-app_label="' + this.__class__.appLabel + '"]'+
                     '[data-model="' + this.__class__.__name__.toLowerCase() + '"]';
-            }
+            
             clearCache= clearCache === undefined ? false : clearCache;
             
             if(!elementsCache[filterExpression]) {
@@ -290,9 +294,38 @@
 
             return data;
         }
-        ,update: function(fields, saveSettings, callback){
-            
+        ,update: function(fields, updateDOM){
+            var
+                instance= this
+            ;
+            updateDOM= updateDOM === undefined ? true : updateDOM;
+
             broke.extend(this.fields, fields);
+
+            if(updateDOM) {
+                // asynchronously update instance's elements
+                setTimeout(function(){
+                    var
+                        elements= instance.elements({ clearCache: true })
+                    ;
+
+                    builtins.forEach(fields, function(key){
+                        var
+                            result= broke.DOM.querySelector('[data-field="' + key + '"]', elements)
+                        ;
+
+                        if(builtins.typeOf(this) == "boolean") {
+                            if(this == true) {
+                                broke.DOM.attr(result, 'checked', 'checked');
+                            } else {
+                                broke.DOM.removeAttr(result, 'checked');
+                            }
+                        } else {
+                            broke.DOM.text(result, this);
+                        }
+                    });
+                }, 0);
+            }
             
             return this;
         }
@@ -388,6 +421,10 @@
             }
         }
         ,'delete': function(settings, callback){
+            var
+                instance= this
+            ;
+
             if(builtins.typeOf(settings) == "function") {
                 callback= settings;
                 settings= {};
@@ -397,6 +434,11 @@
             this.fields._deleted= true;
             
             settings.operation= 'delete';
+
+            setTimeout(function(){
+                instance.elements({ clearCache: true }).remove();
+            }, 0);
+
             return this.save(settings, callback);
         }
     });

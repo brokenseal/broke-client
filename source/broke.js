@@ -249,7 +249,6 @@ var broke= {};
                         ,urlAttribute= urlChangingElement.urlAttribute
                         ,url= broke.DOM.attr(this, urlAttribute)
                         ,type= e.target.tagName.toLowerCase() == "form" ? 'POST' : 'GET'
-                        ,domQueryResult
                     ;
 
                     if(url !== undefined && url.indexOf('#') >= 0) {
@@ -270,6 +269,10 @@ var broke= {};
 
             // collect all the url changing elements
             builtins.forEach(settings.URL_CHANGING_ELEMENTS, function(key){
+                var
+                    domQueryResult
+                ;
+                
                 if(applyToContext === true) {
                     domQueryResult= context;
                 } else {

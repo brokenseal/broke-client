@@ -197,10 +197,7 @@
             method: 'GET',
             fromReload: false,
             statusCode: 200,
-            META: {},
-            GET: {},
-            POST: {},
-            REQUEST: {}
+            META: {}
         }, request);
 
         if(request.url === undefined) {
@@ -219,8 +216,10 @@
                     && request.event.target.tagName
                     && request.event.target.tagName.toLowerCase() === "form"){
             
-            builtins.forEach(broke.DOM.q('inputy,select,textarea', request.event.target), function(){
-                queryString[input.attr('name')]= broke.DOM.val(this);
+            builtins.forEach(broke.DOM.q('input,select,textarea', request.event.target), function(){
+                try {
+                    queryString[broke.DOM.attr(this, 'name')]= broke.DOM.val(this);
+                } catch(e){}
             });
 
             request.POST= queryString;
@@ -280,31 +279,31 @@
             view.apply(this, args);
         }
     });
-
+    
     // Response event handling
     broke.events.bindToResponse(function(e, response, extraArgs, responseCallback){
 
-            extraArgs= extraArgs || [];
+        extraArgs= extraArgs || [];
 
-            // apply additional properties
-            builtins.forEach(response.additionalProperties, function(key){
-                response.element[key]= this;
-            });
+        // apply additional properties
+        builtins.forEach(response.additionalProperties, function(key){
+            response.element[key]= this;
+        });
 
-            // apply callback
-            if(builtins.typeOf(response.callback) == 'function') {
-                response.callback.apply(response.element);
+        // apply callback
+        if(builtins.typeOf(response.callback) == 'function') {
+            response.callback.apply(response.element);
+        }
+
+        // --------- middleware fetching in reverse order ---------
+        builtins.forEach(broke.conf.settings.MIDDLEWARE_CLASSES.reverse(), function(){
+            var
+                middleware= builtins.getattr(this, __global__, {})
+            ;
+
+            if(middleware.processResponse !== undefined) {
+                middleware.processResponse.apply(this, [response].concat(extraArgs));
             }
-
-            // --------- middleware fetching in reverse order ---------
-            builtins.forEach(broke.conf.settings.MIDDLEWARE_CLASSES.reverse(), function(){
-                var
-                    middleware= builtins.getattr(this, __global__, {})
-                ;
-
-                if(middleware.processResponse !== undefined) {
-                    middleware.processResponse.apply(this, [response].concat(extraArgs));
-                }
-            });
+        });
     });
 })(this);

@@ -81,10 +81,10 @@
                 }
 
                 if(kwargs.pk == 'auto') {
-                    kwargs.pk= broke.storages.JSONSchema.autoPk;
+                    kwargs.pk= 'new_' + broke.storages.JSONSchema.autoPk;
                     broke.storages.JSONSchema.autoPk+= 1;
                 }
-
+                
                 if(obj) {
                     position= broke.storages.JSONSchema.position[kwargs.pk];
                     dbTable[position]= kwargs;

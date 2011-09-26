@@ -17,6 +17,12 @@
             'todo'
         ]
         ,ROOT_URLCONF: 'todo.urls'
+        ,URL_CHANGING_ELEMENTS: broke.extend(broke.conf.settings.URL_CHANGING_ELEMENTS, {
+            'input': {
+                events: ['click'],
+                urlAttribute: 'data-href'
+            }
+        })
     };
 
 })(this);

@@ -56,7 +56,7 @@
                 
                 response.element= newElement;
 
-                if(settings.EVENT_TRIGGERING_METHOD == 'hashchange') {
+                if(settings.EVENT_TRIGGERING_METHOD == 'elements') {
                     broke.bindEvents(newElement);
                 }
                 
@@ -88,7 +88,7 @@
                 
                 response.element= newElement;
 
-                if(settings.EVENT_TRIGGERING_METHOD == 'hashchange') {
+                if(settings.EVENT_TRIGGERING_METHOD == 'elements') {
                     broke.bindEvents(newElement);
                 }
                 
